@@ -10,7 +10,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.waff1e.waffle.R
@@ -26,17 +25,26 @@ fun WaffleApp(navController: NavHostController = rememberNavController()) {
 fun WaffleTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
+    canNavigationBack: Boolean,
+    navigateUp: () -> Unit = {  }
 ) {
-    TopAppBar(
-        title = { Text(text = title) },
-        modifier = modifier,
-        navigationIcon = {
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "뒤로가기"
-                )
-            }
-        },
-    )
+    if (canNavigationBack) {
+        TopAppBar(
+            title = { Text(text = title) },
+            modifier = modifier,
+            navigationIcon = {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_btn)
+                    )
+                }
+            },
+        )
+    } else {
+        TopAppBar(
+            title = { Text(text = title) },
+            modifier = modifier,
+        )
+    }
 }
