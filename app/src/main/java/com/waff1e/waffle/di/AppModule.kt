@@ -1,6 +1,8 @@
 package com.waff1e.waffle.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.waff1e.waffle.data.DefaultWaffleRepository
+import com.waff1e.waffle.data.WaffleRepository
 import com.waff1e.waffle.network.WaffleService
 import dagger.Module
 import dagger.Provides
@@ -40,5 +42,11 @@ object AppModule {
     @Provides
     fun provideWaffleService(retrofit: Retrofit): WaffleService {
         return retrofit.create(WaffleService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideWaffleRepository(waffleService: WaffleService): WaffleRepository {
+        return DefaultWaffleRepository(waffleService)
     }
 }
