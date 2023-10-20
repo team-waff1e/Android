@@ -29,15 +29,6 @@ class LoginViewModel @Inject constructor(
             pwd = loginUiState.pwd
         )
 
-        val call = waffleRepository.login(login)
-        val response = call.execute()
-
-        var loginResult: LoginResponse? = null
-
-        if (response.isSuccessful) {
-            loginResult = response.body()
-        }
-
-        return loginResult
+        return waffleRepository.login(login)
     }
 }
