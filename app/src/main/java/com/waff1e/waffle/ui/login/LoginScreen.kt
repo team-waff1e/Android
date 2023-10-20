@@ -66,9 +66,9 @@ fun LoginScreen(
             onItemValueChanged = viewModel::updateLoginUiState,
             onLoginBtnClicked = {
                 coroutineScope.launch {
-                    val loginResult = viewModel.requestLogin()
+                    val response = viewModel.requestLogin()
 
-                    if (loginResult != null && loginResult.isSuccess) {
+                    if (response != null && response.isSuccess) {
                         Log.d("로그", "LoginScreen() - 로그인 성공")
                     } else {
                         Log.d("로그", "LoginScreen() - 로그인 실패")

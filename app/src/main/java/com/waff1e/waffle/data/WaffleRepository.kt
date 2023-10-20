@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 // TODO. 추후에 기능에 따라 Repository 분리 예정
 interface WaffleRepository {
-     suspend fun login(login: Login) : Call<LoginResponse>
+     suspend fun login(login: Login) : LoginResponse
 
      suspend fun signup(signup: Signup)
 }
@@ -17,7 +17,7 @@ interface WaffleRepository {
 class DefaultWaffleRepository @Inject constructor(
      private val waffleService: WaffleService,
 ) : WaffleRepository {
-     override suspend fun login(login: Login) : Call<LoginResponse> {
+     override suspend fun login(login: Login) : LoginResponse {
           return waffleService.requestLogin(login)
      }
 
