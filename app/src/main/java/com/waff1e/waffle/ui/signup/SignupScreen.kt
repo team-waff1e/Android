@@ -4,14 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -21,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,11 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
-import com.waff1e.waffle.ui.login.LoginTextField
-import com.waff1e.waffle.ui.login.LoginUiState
-import com.waff1e.waffle.ui.login.LoginViewModel
-import com.waff1e.waffle.ui.login.isEmailValid
-import com.waff1e.waffle.ui.login.isPwdValid
 import com.waff1e.waffle.ui.theme.Typography
 import kotlinx.coroutines.launch
 
@@ -76,7 +67,8 @@ fun SignupScreen(
                 coroutineScope.launch {
                     viewModel.requestSignup()
                 }
-            }
+            },
+            viewModel = viewModel
         )
     }
 }
@@ -87,7 +79,8 @@ fun SignupBody(
     navigateBack: () -> Unit,
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
-    onSignupBtnClicked: () -> Unit
+    onSignupBtnClicked: () -> Unit,
+    viewModel: SignupViewModel
 ) {
     // Composable에 포커스가 있는지 확인하는 변수
     var isFocused by remember { mutableStateOf(false) }
@@ -121,7 +114,8 @@ fun SignupBody(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
-            )
+            ),
+            viewModel = viewModel
         )
 
         SignupTextField(
@@ -129,7 +123,8 @@ fun SignupBody(
             value = "",
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            viewModel = viewModel
         )
 
         SignupTextField(
@@ -140,7 +135,8 @@ fun SignupBody(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
-            )
+            ),
+            viewModel = viewModel
         )
 
         SignupTextField(
@@ -151,7 +147,8 @@ fun SignupBody(
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
-            )
+            ),
+            viewModel = viewModel
         )
 
         SignupTextField(
@@ -159,7 +156,8 @@ fun SignupBody(
             value = "",
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            viewModel = viewModel
         )
 
         Box (modifier = Modifier.weight(1f))
@@ -190,6 +188,7 @@ fun SignupTextField(
     value: String,
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
+    viewModel: SignupViewModel
 ) {
     // 포커스 관리하는 포커스 매니저
     val focusManager = LocalFocusManager.current
@@ -197,14 +196,24 @@ fun SignupTextField(
     val context = LocalContext.current
 
     OutlinedTextField(
-        value = value,
+        value = when(placeholderText) {
+            context.getString(R.string.email) -> viewModel.emailTerm.collectAsState().value
+            context.getString(R.string.nickname) -> viewModel.nicknameTerm.collectAsState().value
+            else -> value
+        },
         onValueChange = {
             when (placeholderText) {
-                context.getString(R.string.email) -> onItemValueChanged(signupUiState.copy(email = it))
+                context.getString(R.string.email) -> {
+                    onItemValueChanged(signupUiState.copy(email = it))
+                    viewModel.emailTerm.value = it
+                }
                 context.getString(R.string.name) -> onItemValueChanged(signupUiState.copy(name = it))
                 context.getString(R.string.password) -> onItemValueChanged(signupUiState.copy(password = it))
                 context.getString(R.string.password_confirm) -> onItemValueChanged(signupUiState.copy(passwordConfirm = it))
-                context.getString(R.string.nickname) -> onItemValueChanged(signupUiState.copy(nickname = it))
+                context.getString(R.string.nickname) -> {
+                    onItemValueChanged(signupUiState.copy(nickname = it))
+                    viewModel.nicknameTerm.value = it
+                }
             }
         },
         placeholder = {

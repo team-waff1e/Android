@@ -8,6 +8,7 @@ import com.waff1e.waffle.data.WaffleRepository
 import com.waff1e.waffle.dto.Login
 import com.waff1e.waffle.dto.LoginResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
+
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,7 +24,7 @@ class LoginViewModel @Inject constructor(
         )
     }
 
-    suspend fun requestLogin() : LoginResponse? {
+    suspend fun requestLogin() : LoginResponse {
         val login = Login(
             email = loginUiState.email,
             pwd = loginUiState.pwd

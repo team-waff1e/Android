@@ -39,7 +39,6 @@ import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import kotlinx.coroutines.launch
-import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +67,7 @@ fun LoginScreen(
                 coroutineScope.launch {
                     val response = viewModel.requestLogin()
 
-                    if (response != null && response.isSuccess) {
+                    if (response.isSuccess) {
                         Log.d("로그", "LoginScreen() - 로그인 성공")
                     } else {
                         Log.d("로그", "LoginScreen() - 로그인 실패")
