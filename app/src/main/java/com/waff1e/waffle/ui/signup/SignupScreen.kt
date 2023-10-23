@@ -36,16 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
-import com.waff1e.waffle.data.DefaultWaffleRepository
-import com.waff1e.waffle.data.WaffleRepository
-import com.waff1e.waffle.dto.Login
-import com.waff1e.waffle.dto.LoginResponse
-import com.waff1e.waffle.dto.Response
-import com.waff1e.waffle.dto.Signup
-import com.waff1e.waffle.network.WaffleService
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-
 interface WaffleService {
     @POST("auth/login")
     suspend fun requestLogin(@Body login: Login): LoginResponse
