@@ -1,23 +1,25 @@
 package com.waff1e.waffle.network
 
-import com.waff1e.waffle.dto.Login
-import com.waff1e.waffle.dto.LoginResponse
-import com.waff1e.waffle.dto.Response
+import com.waff1e.waffle.dto.CheckEmail
+import com.waff1e.waffle.dto.CheckNickName
+import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.dto.Signup
-import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface WaffleService {
     @POST("auth/login")
-    suspend fun requestLogin(@Body login: Login): LoginResponse
+    suspend fun requestLogin(@Body jsonLogin: JsonElement): Response<DefaultResponse>
 
     @POST("auth/signup")
-    suspend fun requestSignup(@Body signup: Signup)
+    suspend fun requestSignup(@Body signup: Signup): Response<DefaultResponse>
 
     @POST("auth/signup/email")
-    suspend fun checkEmail(@Body email: String): Flow<Response>
+    suspend fun checkEmail(@Body email: CheckEmail): Response<DefaultResponse>
 
     @POST("auth/signup/nickname")
-    suspend fun checkNickname(@Body nickname: String): Flow<Response>
+    suspend fun checkNickname(@Body nickname: CheckNickName): Response<DefaultResponse>
 }

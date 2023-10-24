@@ -1,5 +1,6 @@
 package com.waff1e.waffle.ui.signup
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +33,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +42,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.Bidi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +86,7 @@ fun SignupBody(
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
     onSignupBtnClicked: () -> Unit,
-    viewModel: SignupViewModel
+    viewModel: SignupViewModel,
 ) {
     // Composable에 포커스가 있는지 확인하는 변수
     var isFocused by remember { mutableStateOf(false) }
@@ -89,6 +95,21 @@ fun SignupBody(
 
     BackHandler {
         if (isFocused) focusManager.clearFocus() else navigateBack()
+    }
+
+    val debounceTime = 350L
+    LaunchedEffect(key1 = viewModel.emailTerm.value) {
+        delay(debounceTime)
+        if (viewModel.emailTerm.value.isNotBlank()) {
+            viewModel.checkEmail()
+        }
+    }
+
+    LaunchedEffect(key1 = viewModel.nicknameTerm.value) {
+        delay(debounceTime)
+        if (viewModel.nicknameTerm.value.isNotBlank()) {
+            viewModel.checkNickname()
+        }
     }
 
     Column(
@@ -104,11 +125,11 @@ fun SignupBody(
             fontSize = 30.sp
         )
 
-        Box (modifier = Modifier.weight(0.5f))
+        Box(modifier = Modifier.weight(0.5f))
 
         SignupTextField(
             placeholderText = "이메일",
-            value = "",
+            value = viewModel.emailTerm.value,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
@@ -120,7 +141,7 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = "이름",
-            value = "",
+            value = viewModel.signupUiState.name,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -129,7 +150,7 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = "비밀번호",
-            value = "",
+            value = viewModel.signupUiState.password,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
@@ -141,7 +162,7 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = "비밀번호 확인",
-            value = "",
+            value = viewModel.signupUiState.passwordConfirm,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
@@ -153,14 +174,14 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = "닉네임",
-            value = "",
+            value = viewModel.nicknameTerm.value,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             viewModel = viewModel
         )
 
-        Box (modifier = Modifier.weight(1f))
+        Box(modifier = Modifier.weight(1f))
 
         Button(
             onClick = onSignupBtnClicked,
@@ -171,7 +192,7 @@ fun SignupBody(
             shape = ShapeDefaults.Medium,
         ) {
             Text(
-                modifier= Modifier.padding(0.dp, 10.dp),
+                modifier = Modifier.padding(0.dp, 10.dp),
                 text = "회원가입",
                 style = Typography.bodyLarge,
             )
@@ -184,11 +205,11 @@ fun SignupBody(
 fun SignupTextField(
     modifier: Modifier = Modifier,
     placeholderText: String,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardOptions: KeyboardOptions,
     value: String,
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
-    viewModel: SignupViewModel
+    viewModel: SignupViewModel,
 ) {
     // 포커스 관리하는 포커스 매니저
     val focusManager = LocalFocusManager.current
@@ -196,36 +217,39 @@ fun SignupTextField(
     val context = LocalContext.current
 
     OutlinedTextField(
-        value = when(placeholderText) {
-            context.getString(R.string.email) -> viewModel.emailTerm.collectAsState().value
-            context.getString(R.string.nickname) -> viewModel.nicknameTerm.collectAsState().value
-            else -> value
-        },
+        value = value,
         onValueChange = {
             when (placeholderText) {
-                context.getString(R.string.email) -> {
-                    onItemValueChanged(signupUiState.copy(email = it))
-                    viewModel.emailTerm.value = it
-                }
+                context.getString(R.string.email) -> viewModel.emailTerm.value = it
                 context.getString(R.string.name) -> onItemValueChanged(signupUiState.copy(name = it))
-                context.getString(R.string.password) -> onItemValueChanged(signupUiState.copy(password = it))
-                context.getString(R.string.password_confirm) -> onItemValueChanged(signupUiState.copy(passwordConfirm = it))
-                context.getString(R.string.nickname) -> {
-                    onItemValueChanged(signupUiState.copy(nickname = it))
-                    viewModel.nicknameTerm.value = it
-                }
+                context.getString(R.string.password) -> onItemValueChanged(
+                    signupUiState.copy(
+                        password = it
+                    )
+                )
+
+                context.getString(R.string.password_confirm) -> onItemValueChanged(
+                    signupUiState.copy(
+                        passwordConfirm = it
+                    )
+                )
+
+                context.getString(R.string.nickname) -> viewModel.nicknameTerm.value = it
             }
         },
-        placeholder = {
+        label = {
             Text(
                 text = placeholderText,
-                style = Typography.bodyLarge,
-                color = Color.Gray
             )
         },
         shape = ShapeDefaults.Medium,
         textStyle = Typography.bodyLarge,
         singleLine = true,
+        visualTransformation = when (placeholderText) {
+            context.getString(R.string.password) -> PasswordVisualTransformation()
+            context.getString(R.string.password_confirm) -> PasswordVisualTransformation()
+            else -> VisualTransformation.None
+        },
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         isError = when (placeholderText) {
@@ -245,7 +269,7 @@ fun SignupTextField(
 @Preview
 fun SignupPreview() {
     SignupScreen(
-        onNavigateUp = {  },
-        navigateBack = {  },
+        onNavigateUp = { },
+        navigateBack = { },
     )
 }

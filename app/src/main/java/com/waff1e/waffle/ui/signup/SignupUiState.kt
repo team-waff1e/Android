@@ -19,7 +19,9 @@ fun SignupUiState.toSignup() = Signup(
 )
 
 // TODO. 패스워드 조건 추가 필요
-fun SignupUiState.isPasswordMatch() = password == passwordConfirm
+fun SignupUiState.isPasswordMatch(): Boolean {
+    return passwordConfirm.isNotBlank() && password == passwordConfirm
+}
 fun SignupUiState.isPasswordValid(): Boolean {
     return password.isNotBlank() && isPasswordMatch()
 }

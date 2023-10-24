@@ -1,6 +1,5 @@
 package com.waff1e.waffle.ui.login
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +30,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,12 +66,11 @@ fun LoginScreen(
             onItemValueChanged = viewModel::updateLoginUiState,
             onLoginBtnClicked = {
                 coroutineScope.launch {
-                    val response = viewModel.requestLogin()
-
-                    if (response.isSuccess) {
-                        Log.d("로그", "LoginScreen() - 로그인 성공")
+                    val errorCode = viewModel.requestLogin()
+                    if (errorCode == null) {
+                        // TODO. 로그인 성공 처리
                     } else {
-                        Log.d("로그", "LoginScreen() - 로그인 실패")
+                        // TODO. 로그인 실패 처리
                     }
                 }
             }
@@ -174,7 +174,7 @@ fun LoginTextField(
                 context.getString(R.string.password) -> onItemValueChanged(loginUiState.copy(pwd = it))
             }
         },
-        placeholder = {
+        label = {
             Text(
                 text = placeholderText,
                 style = Typography.bodyLarge,
@@ -184,6 +184,10 @@ fun LoginTextField(
         shape = ShapeDefaults.Medium,
         textStyle = Typography.bodyLarge,
         singleLine = true,
+        visualTransformation = when (placeholderText) {
+            context.getString(R.string.password) -> PasswordVisualTransformation()
+            else -> VisualTransformation.None
+        },
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         isError = when (placeholderText) {
