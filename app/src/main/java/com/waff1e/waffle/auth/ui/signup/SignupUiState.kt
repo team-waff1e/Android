@@ -8,10 +8,12 @@ data class SignupUiState(
     val password: String = "",
     val passwordConfirm: String = "",
     val nickname: String = "",
+    val canEmail: Boolean = false,
+    val canNickname: Boolean = false,
     val canSignup: Boolean = false
 )
 
-fun SignupUiState.toSignup() = SignupRequest(
+fun SignupUiState.toSignupRequest() = SignupRequest(
     email = email,
     name = name,
     password =  password,
@@ -25,9 +27,13 @@ fun SignupUiState.isPasswordMatch(): Boolean {
 fun SignupUiState.isPasswordValid(): Boolean {
     return password.isNotBlank() && isPasswordMatch()
 }
-fun SignupUiState.isEmailValid() = email.isNotBlank()
+fun SignupUiState.isEmailValid(): Boolean {
+    return email.isNotBlank() && canEmail
+}
 fun SignupUiState.isNameValid() = name.isNotBlank()
-fun SignupUiState.isNicknameValid() = nickname.isNotBlank()
+fun SignupUiState.isNicknameValid(): Boolean {
+    return nickname.isNotBlank() && canNickname
+}
 
 fun SignupUiState.isValid(): Boolean {
     val emailCheck = isEmailValid()

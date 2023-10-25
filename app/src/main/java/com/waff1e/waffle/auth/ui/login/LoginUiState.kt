@@ -9,7 +9,7 @@ data class LoginUiState(
     val canLogin: Boolean = false
 )
 
-fun LoginUiState.toLogin() = LoginRequest(email = email, pwd = pwd)
+fun LoginUiState.toLoginRequest() = LoginRequest(email = email, pwd = pwd)
 
 fun LoginUiState.isEmailValid() = email.isNotBlank()
 fun LoginUiState.isPwdValid() = pwd.isNotBlank()

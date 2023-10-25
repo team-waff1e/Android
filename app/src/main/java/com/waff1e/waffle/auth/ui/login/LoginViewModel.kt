@@ -26,11 +26,6 @@ class LoginViewModel @Inject constructor(
     }
 
     suspend fun requestLogin(): ResponseResult {
-        val loginRequest = LoginRequest(
-            email = loginUiState.email,
-            pwd = loginUiState.pwd
-        )
-
-        return authRepository.login(loginRequest).check()
+        return authRepository.login(loginUiState.toLoginRequest()).check()
     }
 }

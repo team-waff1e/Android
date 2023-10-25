@@ -223,13 +223,11 @@ fun SignupTextField(
                         password = it
                     )
                 )
-
                 context.getString(R.string.password_confirm) -> onItemValueChanged(
                     signupUiState.copy(
                         passwordConfirm = it
                     )
                 )
-
                 context.getString(R.string.nickname) -> viewModel.nicknameTerm.value = it
             }
         },

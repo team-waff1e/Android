@@ -1,5 +1,6 @@
 package com.waff1e.waffle.auth.ui.signup
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.waff1e.waffle.auth.data.AuthRepository
 import com.waff1e.waffle.auth.dto.CheckEmailRequest
 import com.waff1e.waffle.auth.dto.CheckNickNameRequest
+import com.waff1e.waffle.auth.dto.SignupRequest
 import com.waff1e.waffle.dto.ResponseResult
 import com.waff1e.waffle.dto.check
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,20 +31,20 @@ class SignupViewModel @Inject constructor(
     }
 
     suspend fun checkEmail(): ResponseResult {
-        signupUiState.copy(email = emailTerm.value)
-        return authRepository.checkEmailStream(CheckEmailRequest(emailTerm.value)).check()
+        val responseResult = authRepository.checkEmailStream(CheckEmailRequest(signupUiState.email)).check()
+        val checkSignupUiState = signupUiState.copy(email = emailTerm.value, canEmail = responseResult.isSuccess)
+        updateSignupUiState(checkSignupUiState)
+        return responseResult
     }
 
     suspend fun checkNickname(): ResponseResult {
-        signupUiState.copy(nickname = nicknameTerm.value)
-        return authRepository.checkNickNameStream(CheckNickNameRequest(nicknameTerm.value)).check()
+        val responseResult = authRepository.checkNickNameStream(CheckNickNameRequest(nicknameTerm.value)).check()
+        val checkSignupUiState = signupUiState.copy(nickname = nicknameTerm.value, canNickname = responseResult.isSuccess)
+        updateSignupUiState(checkSignupUiState)
+        return responseResult
     }
 
-    suspend fun requestSignup() {
-
-    }
-
-    companion object {
-        private const val TIMEOUT_MILLIS = 5_000L
+    suspend fun requestSignup(): ResponseResult {
+        return authRepository.signup(signupUiState.toSignupRequest()).check()
     }
 }
