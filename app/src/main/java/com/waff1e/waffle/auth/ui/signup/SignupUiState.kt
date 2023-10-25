@@ -1,6 +1,6 @@
 package com.waff1e.waffle.auth.ui.signup
 
-import com.waff1e.waffle.auth.dto.Signup
+import com.waff1e.waffle.auth.dto.SignupRequest
 
 data class SignupUiState(
     val email: String = "",
@@ -11,7 +11,7 @@ data class SignupUiState(
     val canSignup: Boolean = false
 )
 
-fun SignupUiState.toSignup() = Signup(
+fun SignupUiState.toSignup() = SignupRequest(
     email = email,
     name = name,
     password =  password,

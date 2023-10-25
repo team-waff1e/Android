@@ -94,6 +94,8 @@ dependencies {
     // Preferences Datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // 상태바 투명하게 설정
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.18.0")
 }
 
 kapt {
