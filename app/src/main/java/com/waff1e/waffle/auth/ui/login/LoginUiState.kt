@@ -1,6 +1,6 @@
 package com.waff1e.waffle.auth.ui.login
 
-import com.waff1e.waffle.auth.dto.Login
+import com.waff1e.waffle.auth.dto.LoginRequest
 
 // 로그인 상태 데이터 클래스
 data class LoginUiState(
@@ -9,7 +9,7 @@ data class LoginUiState(
     val canLogin: Boolean = false
 )
 
-fun LoginUiState.toLogin() = Login(email = email, pwd = pwd)
+fun LoginUiState.toLogin() = LoginRequest(email = email, pwd = pwd)
 
 fun LoginUiState.isEmailValid() = email.isNotBlank()
 fun LoginUiState.isPwdValid() = pwd.isNotBlank()

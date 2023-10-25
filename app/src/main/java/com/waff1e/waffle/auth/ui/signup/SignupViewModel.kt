@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.waff1e.waffle.auth.data.AuthRepository
-import com.waff1e.waffle.auth.dto.CheckEmail
-import com.waff1e.waffle.auth.dto.CheckNickName
+import com.waff1e.waffle.auth.dto.CheckEmailRequest
+import com.waff1e.waffle.auth.dto.CheckNickNameRequest
 import com.waff1e.waffle.dto.ResponseResult
 import com.waff1e.waffle.dto.check
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,12 +30,12 @@ class SignupViewModel @Inject constructor(
 
     suspend fun checkEmail(): ResponseResult {
         signupUiState.copy(email = emailTerm.value)
-        return authRepository.checkEmailStream(CheckEmail(emailTerm.value)).check()
+        return authRepository.checkEmailStream(CheckEmailRequest(emailTerm.value)).check()
     }
 
     suspend fun checkNickname(): ResponseResult {
         signupUiState.copy(nickname = nicknameTerm.value)
-        return authRepository.checkNickNameStream(CheckNickName(nicknameTerm.value)).check()
+        return authRepository.checkNickNameStream(CheckNickNameRequest(nicknameTerm.value)).check()
     }
 
     suspend fun requestSignup() {
