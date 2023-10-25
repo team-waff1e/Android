@@ -1,4 +1,4 @@
-package com.waff1e.waffle.ui.waffles
+package com.waff1e.waffle.waffles.ui.waffles
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

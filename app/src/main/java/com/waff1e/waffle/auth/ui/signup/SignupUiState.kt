@@ -1,6 +1,6 @@
-package com.waff1e.waffle.ui.signup
+package com.waff1e.waffle.auth.ui.signup
 
-import com.waff1e.waffle.dto.Signup
+import com.waff1e.waffle.auth.dto.Signup
 
 data class SignupUiState(
     val email: String = "",

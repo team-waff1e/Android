@@ -1,6 +1,6 @@
-package com.waff1e.waffle.ui.login
+package com.waff1e.waffle.auth.ui.login
 
-import com.waff1e.waffle.dto.Login
+import com.waff1e.waffle.auth.dto.Login
 
 // 로그인 상태 데이터 클래스
 data class LoginUiState(

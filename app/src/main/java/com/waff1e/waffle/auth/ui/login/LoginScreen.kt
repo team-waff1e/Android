@@ -1,4 +1,4 @@
-package com.waff1e.waffle.ui.login
+package com.waff1e.waffle.auth.ui.login
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement

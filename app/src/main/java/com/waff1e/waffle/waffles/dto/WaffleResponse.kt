@@ -1,4 +1,4 @@
-package com.waff1e.waffle.dto
+package com.waff1e.waffle.waffles.dto
 
 import kotlinx.datetime.serializers.LocalDateTimeIso8601Serializer
 import kotlinx.serialization.SerialName

@@ -73,9 +73,9 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.4")
 
     // Hilt (DI 라이브러리)
-    implementation("com.google.dagger:hilt-android:2.44")
+    implementation("com.google.dagger:hilt-android:2.46.1")
 //    kapt("com.google.dagger:hilt-android-compiler:2.44")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.46.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
     // okhttp3

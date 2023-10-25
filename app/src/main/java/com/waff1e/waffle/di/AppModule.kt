@@ -1,9 +1,9 @@
 package com.waff1e.waffle.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.waff1e.waffle.data.DefaultWaffleRepository
-import com.waff1e.waffle.data.WaffleRepository
-import com.waff1e.waffle.network.WaffleService
+import com.waff1e.waffle.auth.data.DefaultAuthRepository
+import com.waff1e.waffle.auth.data.AuthRepository
+import com.waff1e.waffle.auth.network.AuthService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,7 +20,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    private const val BASE_URL = "https://87a26294-cb63-4261-8e72-ad987fd83ee3.mock.pstmn.io"
+    private const val BASE_URL = "https://39c2e677-1701-431e-9097-dfe2414db875.mock.pstmn.io"
 
     @Singleton
     @Provides
@@ -59,13 +59,13 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideWaffleService(retrofit: Retrofit): WaffleService {
-        return retrofit.create(WaffleService::class.java)
+    fun provideAuthService(retrofit: Retrofit): AuthService {
+        return retrofit.create(AuthService::class.java)
     }
 
     @Singleton
     @Provides
-    fun provideWaffleRepository(waffleService: WaffleService): WaffleRepository {
-        return DefaultWaffleRepository(waffleService)
+    fun provideAuthRepository(authService: AuthService): AuthRepository {
+        return DefaultAuthRepository(authService)
     }
 }
