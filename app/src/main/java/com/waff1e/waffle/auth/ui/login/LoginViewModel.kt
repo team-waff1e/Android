@@ -5,11 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.waff1e.waffle.auth.data.AuthRepository
-import com.waff1e.waffle.auth.dto.LoginRequest
 import com.waff1e.waffle.dto.ResponseResult
 import com.waff1e.waffle.dto.check
 import dagger.hilt.android.lifecycle.HiltViewModel
-
 import javax.inject.Inject
 
 @HiltViewModel
