@@ -1,4 +1,4 @@
-package com.waff1e.waffle.ui.waffles
+package com.waff1e.waffle.waffles.ui.waffles
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,10 +28,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.waff1e.waffle.R
-import com.waff1e.waffle.dto.Member
-import com.waff1e.waffle.dto.WaffleResponse
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.waffles.dto.Member
+import com.waff1e.waffle.waffles.dto.WaffleResponse
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit

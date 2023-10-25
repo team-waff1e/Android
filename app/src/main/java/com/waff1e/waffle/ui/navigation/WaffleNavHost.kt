@@ -8,12 +8,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.waff1e.waffle.ui.home.HomeScreen
-import com.waff1e.waffle.ui.login.LoginScreen
+import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
-import com.waff1e.waffle.ui.signup.SignupScreen
-import com.waff1e.waffle.ui.waffles.WafflesScreen
+import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.waffles.ui.waffles.WafflesScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 
 @Composable

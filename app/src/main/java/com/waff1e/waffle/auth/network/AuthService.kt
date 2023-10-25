@@ -1,16 +1,15 @@
-package com.waff1e.waffle.network
+package com.waff1e.waffle.auth.network
 
-import com.waff1e.waffle.dto.CheckEmail
-import com.waff1e.waffle.dto.CheckNickName
+import com.waff1e.waffle.auth.dto.CheckEmail
+import com.waff1e.waffle.auth.dto.CheckNickName
 import com.waff1e.waffle.dto.DefaultResponse
-import com.waff1e.waffle.dto.Signup
-import kotlinx.serialization.Serializable
+import com.waff1e.waffle.auth.dto.Signup
 import kotlinx.serialization.json.JsonElement
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-interface WaffleService {
+interface AuthService {
     @POST("auth/login")
     suspend fun requestLogin(@Body jsonLogin: JsonElement): Response<DefaultResponse>
 
