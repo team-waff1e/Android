@@ -40,15 +40,18 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun WafflesScreen(
     modifier: Modifier = Modifier,
-
-    ) {
-    Scaffold(topBar = {
-        WaffleTopAppBar(
-            title = stringResource(id = R.string.app_name),
-            canNavigationBack = true,
-            navigateUp = { }
-        )
-    }) { innerPadding ->
+    canNavigationBack: Boolean = true,
+    onNavigateUp: () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            WaffleTopAppBar(
+                title = stringResource(id = R.string.app_name),
+                canNavigationBack = canNavigationBack,
+                navigateUp = onNavigateUp
+            )
+        },
+    ) { innerPadding ->
         WafflesBody(
             modifier = modifier.padding(innerPadding)
         )
@@ -61,6 +64,7 @@ fun WafflesBody(
 ) {
     WafflesLazyColumn(
         modifier = modifier
+            .padding(horizontal = 10.dp)
     )
 }
 
@@ -72,7 +76,8 @@ fun WafflesLazyColumn(
 
     LazyColumn(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         itemsIndexed(
             items = list,
@@ -134,11 +139,8 @@ fun WaffleCard(
                         )
 
                         // TODO. 시간, 일, 주, 달 순으로 디테일하게 변경하도록 추가
-//                        val diff = ChronoUnit.HOURS.between(item.createdAt, LocalDateTime.now())
-                        val diff = ChronoUnit.HOURS.between(
-                            LocalDateTime.now().minusDays(10),
-                            LocalDateTime.now()
-                        )
+                        val diff = ChronoUnit.HOURS.between(item.createdAt, LocalDateTime.now())
+
                         val dateString = if (diff >= 24) {
                             item.createdAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
                         } else {
@@ -195,6 +197,7 @@ fun WaffleCard(
     }
 }
 
+// TODO. 더미 리스트 생성 메소드
 fun makeFakeList(): List<WaffleResponse> {
     val list = mutableListOf<WaffleResponse>()
 
@@ -219,6 +222,6 @@ fun makeFakeList(): List<WaffleResponse> {
 @Preview
 fun WafflesPreview() {
     WafflesScreen(
-
+        onNavigateUp = { }
     )
 }

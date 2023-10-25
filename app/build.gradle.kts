@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -32,11 +33,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -74,7 +75,7 @@ dependencies {
     // Hilt (DI 라이브러리)
     implementation("com.google.dagger:hilt-android:2.44")
 //    kapt("com.google.dagger:hilt-android-compiler:2.44")
-    annotationProcessor("com.google.dagger:hilt-android-compiler:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
     // okhttp3
@@ -85,14 +86,16 @@ dependencies {
 
     // kotlinx-serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 
     // Retrofit2 Converter
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
 
     // Preferences Datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
 }
 
-kotlin {
-    jvmToolchain(8)
+kapt {
+    correctErrorTypes = true
 }
