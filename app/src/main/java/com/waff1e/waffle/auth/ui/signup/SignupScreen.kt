@@ -117,14 +117,14 @@ fun SignupBody(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "회원가입",
+            text = stringResource(id = R.string.signup),
             fontSize = 30.sp
         )
 
         Box(modifier = Modifier.weight(0.5f))
 
         SignupTextField(
-            placeholderText = "이메일",
+            placeholderText = stringResource(id = R.string.email),
             value = viewModel.emailTerm.value,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
@@ -136,7 +136,7 @@ fun SignupBody(
         )
 
         SignupTextField(
-            placeholderText = "이름",
+            placeholderText = stringResource(id = R.string.name),
             value = viewModel.signupUiState.name,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
@@ -145,7 +145,7 @@ fun SignupBody(
         )
 
         SignupTextField(
-            placeholderText = "비밀번호",
+            placeholderText = stringResource(id = R.string.password),
             value = viewModel.signupUiState.password,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
@@ -157,7 +157,7 @@ fun SignupBody(
         )
 
         SignupTextField(
-            placeholderText = "비밀번호 확인",
+            placeholderText = stringResource(id = R.string.password_confirm),
             value = viewModel.signupUiState.passwordConfirm,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
@@ -169,7 +169,7 @@ fun SignupBody(
         )
 
         SignupTextField(
-            placeholderText = "닉네임",
+            placeholderText = stringResource(id = R.string.nickname),
             value = viewModel.nicknameTerm.value,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
@@ -189,7 +189,7 @@ fun SignupBody(
         ) {
             Text(
                 modifier = Modifier.padding(0.dp, 10.dp),
-                text = "회원가입",
+                text = stringResource(id = R.string.signup),
                 style = Typography.bodyLarge,
             )
         }
@@ -223,13 +223,11 @@ fun SignupTextField(
                         password = it
                     )
                 )
-
                 context.getString(R.string.password_confirm) -> onItemValueChanged(
                     signupUiState.copy(
                         passwordConfirm = it
                     )
                 )
-
                 context.getString(R.string.nickname) -> viewModel.nicknameTerm.value = it
             }
         },
