@@ -1,6 +1,7 @@
 package com.waff1e.waffle.auth.ui.signup
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -25,8 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -98,6 +102,8 @@ fun SignupBody(
         delay(debounceTime)
         if (viewModel.emailTerm.value.isNotBlank()) {
             viewModel.checkEmail()
+        } else {
+            viewModel.updateSignupUiState(viewModel.signupUiState.copy(email = viewModel.emailTerm.value))
         }
     }
 
@@ -105,6 +111,8 @@ fun SignupBody(
         delay(debounceTime)
         if (viewModel.nicknameTerm.value.isNotBlank()) {
             viewModel.checkNickname()
+        } else {
+            viewModel.updateSignupUiState(viewModel.signupUiState.copy(nickname = viewModel.nicknameTerm.value))
         }
     }
 
@@ -113,7 +121,7 @@ fun SignupBody(
             .fillMaxSize()
             .padding(25.dp)
             .onFocusChanged { isFocused = it.hasFocus },
-        verticalArrangement = Arrangement.spacedBy(30.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -211,6 +219,13 @@ fun SignupTextField(
     val focusManager = LocalFocusManager.current
     // getString() 사용하기 위한 context
     val context = LocalContext.current
+    var visualTransformation: VisualTransformation by remember {
+        if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(R.string.password_confirm)) {
+            mutableStateOf(PasswordVisualTransformation())
+        } else {
+            mutableStateOf(VisualTransformation.None)
+        }
+    }
 
     OutlinedTextField(
         value = value,
@@ -236,26 +251,74 @@ fun SignupTextField(
                 text = placeholderText,
             )
         },
+        trailingIcon = if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(R.string.password_confirm)) {
+            {
+                if ((placeholderText == context.getString(R.string.password) && signupUiState.password.isNotEmpty())
+                    || (placeholderText == context.getString(R.string.password_confirm) && signupUiState.passwordConfirm.isNotEmpty())) {
+                    Icon(
+                        modifier = Modifier.clickable {
+                            visualTransformation = if (visualTransformation == PasswordVisualTransformation()) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            }
+                        },
+                        painter = painterResource(id = R.drawable.baseline_visibility_24),
+                        contentDescription = stringResource(id = R.string.password_visible_btn_description),
+                    )
+                }
+            }
+        } else {
+            null
+        },
         shape = ShapeDefaults.Medium,
         textStyle = Typography.bodyLarge,
         singleLine = true,
-        visualTransformation = when (placeholderText) {
-            context.getString(R.string.password) -> PasswordVisualTransformation()
-            context.getString(R.string.password_confirm) -> PasswordVisualTransformation()
-            else -> VisualTransformation.None
-        },
+        visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         isError = when (placeholderText) {
             context.getString(R.string.email) -> !signupUiState.isEmailValid()
             context.getString(R.string.name) -> !signupUiState.isNameValid()
-            context.getString(R.string.password) -> !signupUiState.isPasswordValid()
+            context.getString(R.string.password) -> !signupUiState.isPasswordIsNotBlank()
             context.getString(R.string.password_confirm) -> !signupUiState.isPasswordMatch()
             context.getString(R.string.nickname) -> !signupUiState.isNicknameValid()
             else -> false
         },
+        supportingText = {
+            SupportingText(placeholderText = placeholderText, signupUiState = signupUiState)
+        },
         modifier = modifier
             .fillMaxWidth(),
+    )
+}
+
+@Composable
+fun SupportingText(
+    modifier: Modifier = Modifier,
+    placeholderText: String,
+    signupUiState: SignupUiState,
+) {
+    var text = ""
+    val context = LocalContext.current
+
+    when (placeholderText) {
+        context.getString(R.string.email) -> if (!signupUiState.isEmailValid() && !signupUiState.canEmail) {
+            text = "이미 가입된 이메일 입니다"
+        }
+
+        context.getString(R.string.password_confirm) -> if (signupUiState.passwordConfirm.isNotEmpty() && signupUiState.password != signupUiState.passwordConfirm) {
+            text = "비밀번호가 일치하지 않습니다"
+        }
+
+        context.getString(R.string.nickname) -> if (!signupUiState.isNicknameValid() && !signupUiState.canNickname) {
+            text = "이미 사용중인 닉네임입니다"
+        }
+    }
+
+    Text(
+        text = text,
+        color = Color.Red
     )
 }
 

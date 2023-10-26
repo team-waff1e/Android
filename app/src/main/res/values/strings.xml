@@ -16,4 +16,5 @@
 
     <!-- 기타 -->
     <string name="exit_toast_message">뒤로가기 버튼을 한번 더 누르면 종료됩니다</string>
+    <string name="password_visible_btn_description">비밀번호 표시 아이콘</string>
 </resources>

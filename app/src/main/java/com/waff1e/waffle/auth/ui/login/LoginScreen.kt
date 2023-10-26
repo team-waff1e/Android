@@ -1,6 +1,7 @@
 package com.waff1e.waffle.auth.ui.login
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -27,6 +29,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -168,6 +171,14 @@ fun LoginTextField(
     val focusManager = LocalFocusManager.current
     // getString() 사용하기 위한 context
     val context = LocalContext.current
+    var visualTransformation: VisualTransformation by remember {
+        if (placeholderText == context.getString(R.string.password)) {
+            mutableStateOf(PasswordVisualTransformation())
+        } else {
+            mutableStateOf(VisualTransformation.None)
+        }
+    }
+
 
     OutlinedTextField(
         value = value,
@@ -184,13 +195,29 @@ fun LoginTextField(
                 color = Color.Gray
             )
         },
+        trailingIcon = if (placeholderText == context.getString(R.string.password)) {
+            {
+                if (placeholderText == context.getString(R.string.password) && loginUiState.pwd.isNotEmpty()) {
+                    Icon(
+                        modifier = Modifier.clickable {
+                            visualTransformation = if (visualTransformation == PasswordVisualTransformation()) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            }
+                        },
+                        painter = painterResource(id = R.drawable.baseline_visibility_24),
+                        contentDescription = stringResource(id = R.string.password_visible_btn_description),
+                    )
+                }
+            }
+        } else {
+            null
+        },
         shape = ShapeDefaults.Medium,
         textStyle = Typography.bodyLarge,
         singleLine = true,
-        visualTransformation = when (placeholderText) {
-            context.getString(R.string.password) -> PasswordVisualTransformation()
-            else -> VisualTransformation.None
-        },
+        visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         isError = when (placeholderText) {
