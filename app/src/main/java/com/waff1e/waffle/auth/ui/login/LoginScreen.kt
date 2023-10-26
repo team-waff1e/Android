@@ -2,6 +2,7 @@ package com.waff1e.waffle.auth.ui.login
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -178,6 +179,7 @@ fun LoginTextField(
             mutableStateOf(VisualTransformation.None)
         }
     }
+    val interactionSource = remember { MutableInteractionSource() }
 
 
     OutlinedTextField(
@@ -199,14 +201,21 @@ fun LoginTextField(
             {
                 if (placeholderText == context.getString(R.string.password) && loginUiState.pwd.isNotEmpty()) {
                     Icon(
-                        modifier = Modifier.clickable {
+                        modifier = Modifier.clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
                             visualTransformation = if (visualTransformation == PasswordVisualTransformation()) {
                                 VisualTransformation.None
                             } else {
                                 PasswordVisualTransformation()
                             }
                         },
-                        painter = painterResource(id = R.drawable.baseline_visibility_24),
+                        painter = if (visualTransformation == PasswordVisualTransformation()) {
+                            painterResource(id = R.drawable.visibility)
+                        } else {
+                            painterResource(id = R.drawable.visibility_off)
+                        },
                         contentDescription = stringResource(id = R.string.password_visible_btn_description),
                     )
                 }

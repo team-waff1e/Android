@@ -2,6 +2,7 @@ package com.waff1e.waffle.auth.ui.signup
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -226,6 +227,7 @@ fun SignupTextField(
             mutableStateOf(VisualTransformation.None)
         }
     }
+    val interactionSource = remember { MutableInteractionSource() }
 
     OutlinedTextField(
         value = value,
@@ -256,14 +258,21 @@ fun SignupTextField(
                 if ((placeholderText == context.getString(R.string.password) && signupUiState.password.isNotEmpty())
                     || (placeholderText == context.getString(R.string.password_confirm) && signupUiState.passwordConfirm.isNotEmpty())) {
                     Icon(
-                        modifier = Modifier.clickable {
+                        modifier = Modifier.clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
                             visualTransformation = if (visualTransformation == PasswordVisualTransformation()) {
                                 VisualTransformation.None
                             } else {
                                 PasswordVisualTransformation()
                             }
                         },
-                        painter = painterResource(id = R.drawable.baseline_visibility_24),
+                        painter = if (visualTransformation == PasswordVisualTransformation()) {
+                            painterResource(id = R.drawable.visibility)
+                        } else {
+                            painterResource(id = R.drawable.visibility_off)
+                        },
                         contentDescription = stringResource(id = R.string.password_visible_btn_description),
                     )
                 }
@@ -306,11 +315,9 @@ fun SupportingText(
         context.getString(R.string.email) -> if (signupUiState.email.isNotEmpty() && !signupUiState.canEmail) {
             text = stringResource(id = R.string.exist_email_error)
         }
-
         context.getString(R.string.password_confirm) -> if (signupUiState.passwordConfirm.isNotEmpty() && signupUiState.password != signupUiState.passwordConfirm) {
             text = stringResource(id = R.string.password_match_error)
         }
-
         context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
             text = stringResource(id = R.string.exist_nickname_error)
         }

@@ -197,7 +197,7 @@ fun WaffleCard(
                     Image(
                         modifier = Modifier
                             .size(20.dp),
-                        painter = painterResource(id = R.drawable.more_vert_fill0_wght400_grad0_opsz24),
+                        painter = painterResource(id = R.drawable.more_vert),
                         contentDescription = "게시글 옵션"
                     )
                 }
