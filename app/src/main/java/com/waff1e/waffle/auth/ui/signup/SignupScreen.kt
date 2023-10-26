@@ -303,7 +303,7 @@ fun SupportingText(
     val context = LocalContext.current
 
     when (placeholderText) {
-        context.getString(R.string.email) -> if (!signupUiState.isEmailValid() && !signupUiState.canEmail) {
+        context.getString(R.string.email) -> if (signupUiState.email.isNotEmpty() && !signupUiState.canEmail) {
             text = "이미 가입된 이메일 입니다"
         }
 
@@ -311,7 +311,7 @@ fun SupportingText(
             text = "비밀번호가 일치하지 않습니다"
         }
 
-        context.getString(R.string.nickname) -> if (!signupUiState.isNicknameValid() && !signupUiState.canNickname) {
+        context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
             text = "이미 사용중인 닉네임입니다"
         }
     }
