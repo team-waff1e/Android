@@ -13,7 +13,7 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
-import com.waff1e.waffle.waffle.ui.waffles.WafflesScreen
+import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 
 @Composable
@@ -60,7 +60,7 @@ fun WaffleNavHost(
 
         // Waffle 화면
         composable(route = Waffles.route) {
-            WafflesScreen(
+            WaffleListScreen(
                 onNavigateUp = { navController.navigateUp() }
             )
         }

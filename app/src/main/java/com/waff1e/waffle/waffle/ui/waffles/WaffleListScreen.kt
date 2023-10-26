@@ -57,9 +57,9 @@ import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WafflesScreen(
+fun WaffleListScreen(
     modifier: Modifier = Modifier,
-    viewModel: WafflesViewModel = hiltViewModel(),
+    viewModel: WaffleListViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     onNavigateUp: () -> Unit,
 ) {
@@ -82,7 +82,7 @@ fun WafflesScreen(
 @Composable
 fun WafflesBody(
     modifier: Modifier = Modifier,
-    viewModel: WafflesViewModel,
+    viewModel: WaffleListViewModel,
 ) {
     WafflesLazyColumn(
         modifier = modifier
@@ -94,7 +94,7 @@ fun WafflesBody(
 @Composable
 fun WafflesLazyColumn(
     modifier: Modifier = Modifier,
-    viewModel: WafflesViewModel,
+    viewModel: WaffleListViewModel,
 ) {
     var isLoading by remember { mutableStateOf(true) }
     val list = viewModel.waffleListUiState.value.waffleList
@@ -326,7 +326,7 @@ fun Modifier.loadingEffect(): Modifier = composed {
 @Composable
 @Preview
 fun WafflesPreview() {
-    WafflesScreen(
+    WaffleListScreen(
         onNavigateUp = { }
     )
 }
