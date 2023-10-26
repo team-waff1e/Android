@@ -1,19 +1,20 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.waffle.data.WaffleRepository
+import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
 import com.waff1e.waffle.waffle.dto.WaffleListRequest
-import com.waff1e.waffle.waffle.dto.WaffleResponse
-import com.waff1e.waffle.waffle.dto.check
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
-class WafflesViewModel @Inject constructor(
+class WaffleListViewModel @Inject constructor(
     private val waffleRepository: WaffleRepository,
 ) : ViewModel() {
     val waffleListUiState: MutableState<WaffleListUiState> = mutableStateOf(WaffleListUiState())
@@ -24,7 +25,7 @@ class WafflesViewModel @Inject constructor(
         }
     }
 
-    suspend fun getWaffleList(isUpdate: Boolean): List<WaffleResponse> {
+    suspend fun getWaffleList(isUpdate: Boolean) {
         val waffleListRequest = WaffleListRequest(
             limit = LIMIT,
             isUpdate = isUpdate,
@@ -33,11 +34,14 @@ class WafflesViewModel @Inject constructor(
 
         // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
 //        val responseResult = waffleRepository.requestWaffleList(waffleListRequest).check()
-        val responseResult = waffleRepository.requestWaffleList().check()
+        val responseResult = waffleRepository.requestWaffleList()
 
-        waffleListUiState.value = waffleListUiState.value.copy(waffleList = responseResult.list)
-
-        return waffleListUiState.value.waffleList
+        if (responseResult.isSuccessful) {
+            waffleListUiState.value = waffleListUiState.value.copy(waffleList = responseResult.body()!!.list)
+        } else {
+            val body = Json.decodeFromString<WaffleListFailResponse>(responseResult.errorBody()?.string()!!)
+            waffleListUiState.value = waffleListUiState.value.copy(errorCode = body.errorCode)
+        }
     }
 
     companion object {
