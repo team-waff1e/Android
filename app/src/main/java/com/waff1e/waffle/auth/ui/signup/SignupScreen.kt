@@ -304,15 +304,15 @@ fun SupportingText(
 
     when (placeholderText) {
         context.getString(R.string.email) -> if (signupUiState.email.isNotEmpty() && !signupUiState.canEmail) {
-            text = "이미 가입된 이메일 입니다"
+            text = stringResource(id = R.string.exist_email_error)
         }
 
         context.getString(R.string.password_confirm) -> if (signupUiState.passwordConfirm.isNotEmpty() && signupUiState.password != signupUiState.passwordConfirm) {
-            text = "비밀번호가 일치하지 않습니다"
+            text = stringResource(id = R.string.password_match_error)
         }
 
         context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
-            text = "이미 사용중인 닉네임입니다"
+            text = stringResource(id = R.string.exist_nickname_error)
         }
     }
 
