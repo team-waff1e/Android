@@ -4,9 +4,9 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.waff1e.waffle.auth.data.DefaultAuthRepository
 import com.waff1e.waffle.auth.data.AuthRepository
 import com.waff1e.waffle.auth.network.AuthService
-import com.waff1e.waffle.waffles.data.DefaultWafflesRepository
-import com.waff1e.waffle.waffles.data.WafflesRepository
-import com.waff1e.waffle.waffles.network.WafflesService
+import com.waff1e.waffle.waffle.data.DefaultWaffleRepository
+import com.waff1e.waffle.waffle.data.WaffleRepository
+import com.waff1e.waffle.waffle.network.WaffleService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,7 +17,6 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
-import retrofit2.create
 import java.lang.reflect.Type
 import javax.inject.Singleton
 
@@ -75,13 +74,13 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideWafflesService(retrofit: Retrofit): WafflesService {
-        return retrofit.create(WafflesService::class.java)
+    fun provideWafflesService(retrofit: Retrofit): WaffleService {
+        return retrofit.create(WaffleService::class.java)
     }
 
     @Singleton
     @Provides
-    fun provideWafflesRepository(wafflesService: WafflesService): WafflesRepository {
-        return DefaultWafflesRepository(wafflesService)
+    fun provideWafflesRepository(waffleService: WaffleService): WaffleRepository {
+        return DefaultWaffleRepository(waffleService)
     }
 }

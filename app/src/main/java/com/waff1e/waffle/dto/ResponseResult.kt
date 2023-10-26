@@ -1,6 +1,7 @@
 package com.waff1e.waffle.dto
 
 import android.util.Log
+import com.waff1e.waffle.waffle.dto.WaffleResponse
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import retrofit2.Response
@@ -13,7 +14,7 @@ data class ResponseResult(
 )
 
 // Retrofit 응답 결과에 따른 처리 메소드
-fun <T> Response<T>.check(): ResponseResult {
+fun Response<DefaultResponse>.check(): ResponseResult {
     val responseResult = ResponseResult(isSuccess = isSuccessful, statusCode = code())
 
     if (this.isSuccessful) {

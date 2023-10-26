@@ -1,12 +1,19 @@
-package com.waff1e.waffle.waffles.ui.waffles
+package com.waff1e.waffle.waffle.ui.waffles
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,20 +25,32 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
-import com.waff1e.waffle.waffles.dto.Member
-import com.waff1e.waffle.waffles.dto.WaffleResponse
+import com.waff1e.waffle.waffle.dto.WaffleResponse
+import kotlinx.datetime.toJavaLocalDateTime
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -40,6 +59,7 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun WafflesScreen(
     modifier: Modifier = Modifier,
+    viewModel: WafflesViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     onNavigateUp: () -> Unit,
 ) {
@@ -53,7 +73,8 @@ fun WafflesScreen(
         },
     ) { innerPadding ->
         WafflesBody(
-            modifier = modifier.padding(innerPadding)
+            modifier = modifier.padding(innerPadding),
+            viewModel = viewModel
         )
     }
 }
@@ -61,34 +82,50 @@ fun WafflesScreen(
 @Composable
 fun WafflesBody(
     modifier: Modifier = Modifier,
+    viewModel: WafflesViewModel,
 ) {
     WafflesLazyColumn(
         modifier = modifier
-            .padding(horizontal = 10.dp)
+            .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+        viewModel = viewModel,
     )
 }
 
 @Composable
 fun WafflesLazyColumn(
     modifier: Modifier = Modifier,
+    viewModel: WafflesViewModel,
 ) {
-    val list = makeFakeList()
+    var isLoading by remember { mutableStateOf(true) }
+    val list = viewModel.waffleListUiState.value.waffleList
+
+    LaunchedEffect(key1 = isLoading, key2 = list) {
+        if (list.isNotEmpty()) {
+            isLoading = false
+        }
+    }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        itemsIndexed(
-            items = list,
-            key = { _, item ->
-                item.id
+        if (isLoading) {
+            items(20) {
+                LoadingWaffle()
             }
-        ) { _, item ->
-            WaffleCard(
-                modifier = modifier,
-                item = item,
-            )
+        } else {
+            itemsIndexed(
+                items = list,
+                key = { _, item ->
+                    item.id
+                }
+            ) { _, item ->
+                WaffleCard(
+                    modifier = modifier,
+                    item = item,
+                )
+            }
         }
     }
 }
@@ -139,10 +176,14 @@ fun WaffleCard(
                         )
 
                         // TODO. 시간, 일, 주, 달 순으로 디테일하게 변경하도록 추가
-                        val diff = ChronoUnit.HOURS.between(item.createdAt, LocalDateTime.now())
+                        val diff = ChronoUnit.HOURS.between(
+                            item.createdAt.toJavaLocalDateTime(),
+                            LocalDateTime.now()
+                        )
 
                         val dateString = if (diff >= 24) {
-                            item.createdAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                            item.createdAt.toJavaLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
                         } else {
                             "${diff}h"
                         }
@@ -197,25 +238,89 @@ fun WaffleCard(
     }
 }
 
-// TODO. 더미 리스트 생성 메소드
-fun makeFakeList(): List<WaffleResponse> {
-    val list = mutableListOf<WaffleResponse>()
-
-    for (i in 1..100) {
-        list.add(
-            WaffleResponse(
-                i.toLong(),
-                "테스트${i} 내용입니다~~~~~테스트${i} 내용입니다~~~~~테스트${i} 내용입니다~~~~~테스트${i} 내용입니다~~~~~테스트${i} 내용입니다~~~~~테스트${i} 내용입니다~~~~~테스트${i} 내용입니다~~~~~",
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                1000,
-                100,
-                Member("테스트 유저 $i", "테스트 url $i")
+@Composable
+fun LoadingWaffle(
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .loadingEffect(),
             )
-        )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = modifier
+                        .height(20.dp)
+                        .fillMaxWidth()
+                        .loadingEffect()
+                )
+
+                Box(
+                    modifier = modifier
+                        .height(40.dp)
+                        .fillMaxWidth()
+                        .loadingEffect()
+                )
+
+                Box(
+                    modifier = modifier
+                        .height(20.dp)
+                        .fillMaxWidth()
+                        .loadingEffect()
+                )
+            }
+        }
+    }
+}
+
+fun Modifier.loadingEffect(): Modifier = composed {
+    var size by remember {
+        mutableStateOf(IntSize.Zero)
     }
 
-    return list
+    val transition = rememberInfiniteTransition(label = "")
+    val translateAnimation by transition.animateFloat(
+        initialValue = -2 * size.width.toFloat(),
+        targetValue = 2 * size.width.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearOutSlowInEasing)
+        ),
+        label = ""
+    )
+
+    background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color.LightGray.copy(alpha = 0.9f),
+                Color.LightGray.copy(alpha = 0.4f),
+            ),
+            start = Offset(translateAnimation, translateAnimation),
+            end = Offset(
+                translateAnimation + size.width.toFloat(),
+                translateAnimation + size.height.toFloat()
+            ),
+            tileMode = TileMode.Mirror
+        )
+    )
+        .onGloballyPositioned {
+            size = it.size
+        }
 }
 
 @Composable
@@ -224,4 +329,10 @@ fun WafflesPreview() {
     WafflesScreen(
         onNavigateUp = { }
     )
+}
+
+@Composable
+@Preview
+fun LoadingWafflePreview() {
+    LoadingWaffle()
 }
