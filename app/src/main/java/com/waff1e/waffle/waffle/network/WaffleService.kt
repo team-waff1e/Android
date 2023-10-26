@@ -14,10 +14,7 @@ import retrofit2.http.QueryMap
 import retrofit2.http.QueryName
 
 interface WaffleService {
+    // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
     @GET("waffles")
     suspend fun getWaffleList(): Response<WaffleListSuccessResponse>
-
-    // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
-//    @GET("waffles")
-//    suspend fun getWaffleList(waffleListRequest: WaffleListRequest): Response<List<WaffleResponse>>
 }
