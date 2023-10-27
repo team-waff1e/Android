@@ -17,7 +17,7 @@ import javax.inject.Inject
 class WaffleListViewModel @Inject constructor(
     private val waffleRepository: WaffleRepository,
 ) : ViewModel() {
-    val waffleListUiState: MutableState<WaffleListUiState> = mutableStateOf(WaffleListUiState())
+    val waffleListUiState = mutableStateOf(WaffleListUiState())
 
     init {
         viewModelScope.launch {

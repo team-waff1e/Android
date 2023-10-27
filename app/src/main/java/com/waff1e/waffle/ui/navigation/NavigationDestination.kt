@@ -9,5 +9,9 @@ sealed class NavigationDestination(val route: String, val titleRes: Int) {
 
     object Signup : NavigationDestination("signup", R.string.signup)
 
-    object Waffles : NavigationDestination("waffles", R.string.app_name)
+    object Waffles : NavigationDestination("waffles", R.string.waffles)
+
+    object Waffle : NavigationDestination("waffle", R.string.waffle) {
+        const val waffleArg = "waffle"
+    }
 }

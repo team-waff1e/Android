@@ -5,6 +5,8 @@
     <string name="home">홈</string>
     <string name="login">로그인</string>
     <string name="signup">회원가입</string>
+    <string name="waffles">Waffles</string>
+    <string name="waffle">Waffle</string>
 
     <!-- 요소 관련 -->
     <string name="back_btn">뒤로가기</string>
