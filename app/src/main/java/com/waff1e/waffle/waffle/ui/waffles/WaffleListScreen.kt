@@ -7,6 +7,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,19 +63,22 @@ fun WaffleListScreen(
     viewModel: WaffleListViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     onNavigateUp: () -> Unit,
+    navigateToWaffle: (Long) -> Unit
 ) {
     Scaffold(
         topBar = {
             WaffleTopAppBar(
-                title = stringResource(id = R.string.app_name),
+                title = stringResource(id = R.string.waffles),
                 canNavigationBack = canNavigationBack,
                 navigateUp = onNavigateUp
             )
         },
     ) { innerPadding ->
         WafflesBody(
-            modifier = modifier.padding(innerPadding),
-            viewModel = viewModel
+            modifier = modifier
+                .padding(innerPadding),
+            viewModel = viewModel,
+            onWaffleClick = navigateToWaffle
         )
     }
 }
@@ -83,11 +87,13 @@ fun WaffleListScreen(
 fun WafflesBody(
     modifier: Modifier = Modifier,
     viewModel: WaffleListViewModel,
+    onWaffleClick: (Long) -> Unit
 ) {
     WafflesLazyColumn(
         modifier = modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         viewModel = viewModel,
+        onWaffleClick = { onWaffleClick(it.id) }
     )
 }
 
@@ -95,6 +101,7 @@ fun WafflesBody(
 fun WafflesLazyColumn(
     modifier: Modifier = Modifier,
     viewModel: WaffleListViewModel,
+    onWaffleClick: (WaffleResponse) -> Unit
 ) {
     var isLoading by remember { mutableStateOf(true) }
     val list = viewModel.waffleListUiState.value.waffleList
@@ -122,8 +129,8 @@ fun WafflesLazyColumn(
                 }
             ) { _, item ->
                 WaffleCard(
-                    modifier = modifier,
                     item = item,
+                    onItemClick = onWaffleClick
                 )
             }
         }
@@ -134,10 +141,12 @@ fun WafflesLazyColumn(
 fun WaffleCard(
     modifier: Modifier = Modifier,
     item: WaffleResponse,
+    onItemClick: (WaffleResponse) -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onItemClick(item) },
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -152,7 +161,7 @@ fun WaffleCard(
                     .size(50.dp)
                     .clip(CircleShape)
                     .background(Color.Green),
-                painter = painterResource(id = R.drawable.baseline_person_24),
+                painter = painterResource(id = R.drawable.person),
                 contentDescription = "프로필 사진"
             )
 
@@ -161,7 +170,7 @@ fun WaffleCard(
             ) {
                 Row(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -213,7 +222,7 @@ fun WaffleCard(
                         Image(
                             modifier = Modifier
                                 .size(20.dp),
-                            painter = painterResource(id = R.drawable.baseline_chat_bubble_outline_24),
+                            painter = painterResource(id = R.drawable.chat_bubble),
                             contentDescription = "댓글 수"
                         )
 
@@ -226,7 +235,7 @@ fun WaffleCard(
                         Image(
                             modifier = Modifier
                                 .size(20.dp),
-                            painter = painterResource(id = R.drawable.baseline_favorite_border_24),
+                            painter = painterResource(id = R.drawable.favorite),
                             contentDescription = "좋아요 수"
                         )
 
@@ -327,7 +336,8 @@ fun Modifier.loadingEffect(): Modifier = composed {
 @Preview
 fun WafflesPreview() {
     WaffleListScreen(
-        onNavigateUp = { }
+        onNavigateUp = { },
+        navigateToWaffle = { },
     )
 }
 

@@ -1,6 +1,7 @@
 package com.waff1e.waffle.waffle.data
 
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
+import com.waff1e.waffle.waffle.dto.WaffleResponse
 import com.waff1e.waffle.waffle.network.WaffleService
 import retrofit2.Response
 import javax.inject.Inject
@@ -8,6 +9,8 @@ import javax.inject.Inject
 interface WaffleRepository {
     // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
     suspend fun requestWaffleList(): Response<WaffleListSuccessResponse>
+
+    suspend fun requestWaffle(id: Long): Response<WaffleResponse>
 }
 
 class DefaultWaffleRepository @Inject constructor(
@@ -16,5 +19,9 @@ class DefaultWaffleRepository @Inject constructor(
     // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
     override suspend fun requestWaffleList(): Response<WaffleListSuccessResponse> {
         return waffleService.getWaffleList()
+    }
+
+    override suspend fun requestWaffle(id: Long): Response<WaffleResponse> {
+        return waffleService.getWaffle(id)
     }
 }

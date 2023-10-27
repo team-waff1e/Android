@@ -5,8 +5,10 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.waff1e.waffle.ui.home.HomeScreen
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
@@ -15,6 +17,8 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
+import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
+import com.waff1e.waffle.waffle.ui.waffle.WaffleScreen
 
 @Composable
 fun WaffleNavHost(
@@ -58,10 +62,22 @@ fun WaffleNavHost(
             )
         }
 
-        // Waffle 화면
+        // Waffles(리스트) 화면
         composable(route = Waffles.route) {
             WaffleListScreen(
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") }
+            )
+        }
+
+        // Waffle
+        composable(
+            route = "${Waffle.route}/{${Waffle.waffleArg}}",
+            arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType })
+        ) {
+            WaffleScreen(
+                navigateBack = { navController.popBackStack() },
+                onNavigateUp = { navController.navigateUp() },
             )
         }
     }

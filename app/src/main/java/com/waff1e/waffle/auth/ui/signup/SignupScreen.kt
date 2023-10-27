@@ -324,6 +324,7 @@ fun SupportingText(
     }
 
     Text(
+        modifier = modifier,
         text = text,
         color = Color.Red
     )
