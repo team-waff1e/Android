@@ -1,5 +1,6 @@
 package com.waff1e.waffle.auth.ui.login
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -9,11 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -36,11 +39,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.auth.ui.signup.SupportingText
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import kotlinx.coroutines.launch
@@ -53,6 +58,7 @@ fun LoginScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     navigateBack: () -> Unit,
+    navigateToWaffles: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -74,7 +80,7 @@ fun LoginScreen(
 
                     if (responseResult.isSuccess) {
                         // TODO. 로그인 성공 처리
-
+                        navigateToWaffles()
                     } else {
                         // TODO. 로그인 실패 처리
                         
@@ -107,15 +113,18 @@ fun LoginBody(
             .fillMaxSize()
             .padding(25.dp)
             .onFocusChanged { isFocused = it.hasFocus },
-        verticalArrangement = Arrangement.spacedBy(30.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "로그인",
-            fontSize = 30.sp
+            modifier = Modifier
+                .fillMaxWidth(),
+            text = stringResource(id = R.string.login_title_text),
+            style = Typography.titleLarge,
+            textAlign = TextAlign.Start,
         )
 
-        Box(modifier = Modifier.weight(0.5f))
+        Box(modifier = Modifier.size(10.dp))
 
         LoginTextField(
             placeholderText = stringResource(id = R.string.email),
@@ -145,14 +154,13 @@ fun LoginBody(
             onClick = onLoginBtnClicked,
             enabled = loginUiState.canLogin,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 30.dp),
+                .fillMaxWidth(),
             shape = ShapeDefaults.Medium,
         ) {
             Text(
-                modifier = Modifier.padding(0.dp, 5.dp),
-                text = "로그인",
-                style = Typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 7.dp),
+                text = stringResource(id = R.string.login),
+                style = Typography.labelMedium,
             )
         }
     }
@@ -243,7 +251,8 @@ fun LoginTextField(
 @Preview
 fun LoginPreview() {
     LoginScreen(
-        onNavigateUp = { },
-        navigateBack = { },
+        onNavigateUp = {  },
+        navigateBack = {  },
+        navigateToWaffles = {  }
     )
 }

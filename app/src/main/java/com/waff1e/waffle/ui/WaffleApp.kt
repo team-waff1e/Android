@@ -2,6 +2,7 @@ package com.waff1e.waffle.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,6 +15,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.navigation.WaffleNavHost
+import com.waff1e.waffle.ui.theme.Typography
 
 @Composable
 fun WaffleApp(navController: NavHostController = rememberNavController()) {
@@ -26,11 +28,16 @@ fun WaffleTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
     canNavigationBack: Boolean,
-    navigateUp: () -> Unit = {  }
+    navigateUp: () -> Unit = { },
 ) {
     if (canNavigationBack) {
-        TopAppBar(
-            title = { Text(text = title) },
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = title,
+                    style = Typography.titleMedium
+                )
+            },
             modifier = modifier,
             navigationIcon = {
                 IconButton(onClick = navigateUp) {
@@ -42,8 +49,13 @@ fun WaffleTopAppBar(
             },
         )
     } else {
-        TopAppBar(
-            title = { Text(text = title) },
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = title,
+                    style = Typography.titleMedium
+                )
+            },
             modifier = modifier,
         )
     }

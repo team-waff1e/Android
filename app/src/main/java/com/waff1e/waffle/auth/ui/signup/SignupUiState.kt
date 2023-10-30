@@ -22,7 +22,7 @@ fun SignupUiState.toSignupRequest() = SignupRequest(
 
 // TODO. 패스워드 조건 추가 필요
 fun SignupUiState.isPasswordMatch(): Boolean {
-    return passwordConfirm.isNotBlank() && password == passwordConfirm
+    return password == passwordConfirm
 }
 fun SignupUiState.isPasswordIsNotBlank(): Boolean {
     return password.isNotBlank()

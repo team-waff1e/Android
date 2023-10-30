@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -20,6 +21,8 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -37,6 +41,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.ui.theme.WaffleTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -98,25 +104,6 @@ fun SignupBody(
         if (isFocused) focusManager.clearFocus() else navigateBack()
     }
 
-    val debounceTime = 350L
-    LaunchedEffect(key1 = viewModel.emailTerm.value) {
-        delay(debounceTime)
-        if (viewModel.emailTerm.value.isNotBlank()) {
-            viewModel.checkEmail()
-        } else {
-            viewModel.updateSignupUiState(viewModel.signupUiState.copy(email = viewModel.emailTerm.value))
-        }
-    }
-
-    LaunchedEffect(key1 = viewModel.nicknameTerm.value) {
-        delay(debounceTime)
-        if (viewModel.nicknameTerm.value.isNotBlank()) {
-            viewModel.checkNickname()
-        } else {
-            viewModel.updateSignupUiState(viewModel.signupUiState.copy(nickname = viewModel.nicknameTerm.value))
-        }
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -126,11 +113,14 @@ fun SignupBody(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(id = R.string.signup),
-            fontSize = 30.sp
+            modifier = Modifier
+                .fillMaxWidth(),
+            text = stringResource(id = R.string.signup_title_text),
+            style = Typography.titleLarge,
+            textAlign = TextAlign.Start
         )
 
-        Box(modifier = Modifier.weight(0.5f))
+        Box(modifier = Modifier.size(10.dp))
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.email),
@@ -192,14 +182,13 @@ fun SignupBody(
             onClick = onSignupBtnClicked,
             enabled = signupUiState.canSignup,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 30.dp),
+                .fillMaxWidth(),
             shape = ShapeDefaults.Medium,
         ) {
             Text(
-                modifier = Modifier.padding(0.dp, 10.dp),
+                modifier = Modifier.padding(vertical = 7.dp),
                 text = stringResource(id = R.string.signup),
-                style = Typography.bodyLarge,
+                style = Typography.labelMedium,
             )
         }
     }
@@ -228,6 +217,30 @@ fun SignupTextField(
         }
     }
     val interactionSource = remember { MutableInteractionSource() }
+    val debounceTime = 350L
+
+    when (placeholderText) {
+        context.getString(R.string.email) -> {
+            LaunchedEffect(key1 = viewModel.emailTerm.value) {
+                delay(debounceTime)
+                if (viewModel.emailTerm.value.isNotBlank()) {
+                    viewModel.checkEmail()
+                } else {
+                    viewModel.updateSignupUiState(viewModel.signupUiState.copy(email = viewModel.emailTerm.value))
+                }
+            }
+        }
+        context.getString(R.string.nickname) -> {
+            LaunchedEffect(key1 = viewModel.nicknameTerm.value) {
+                delay(debounceTime)
+                if (viewModel.nicknameTerm.value.isNotBlank()) {
+                    viewModel.checkNickname()
+                } else {
+                    viewModel.updateSignupUiState(viewModel.signupUiState.copy(nickname = viewModel.nicknameTerm.value))
+                }
+            }
+        }
+    }
 
     OutlinedTextField(
         value = value,
@@ -286,12 +299,12 @@ fun SignupTextField(
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-        isError = when (placeholderText) {
-            context.getString(R.string.email) -> !signupUiState.isEmailValid()
-            context.getString(R.string.name) -> !signupUiState.isNameValid()
-            context.getString(R.string.password) -> !signupUiState.isPasswordIsNotBlank()
+        isError =  when (placeholderText) {
+            context.getString(R.string.email) -> !signupUiState.canEmail
+//            context.getString(R.string.name) -> !signupUiState.isNameValid()
+//            context.getString(R.string.password) -> !signupUiState.isPasswordIsNotBlank()
             context.getString(R.string.password_confirm) -> !signupUiState.isPasswordMatch()
-            context.getString(R.string.nickname) -> !signupUiState.isNicknameValid()
+            context.getString(R.string.nickname) -> !signupUiState.canNickname
             else -> false
         },
         supportingText = {
@@ -308,33 +321,41 @@ fun SupportingText(
     placeholderText: String,
     signupUiState: SignupUiState,
 ) {
+    var isNeed = false
+
     var text = ""
     val context = LocalContext.current
 
     when (placeholderText) {
         context.getString(R.string.email) -> if (signupUiState.email.isNotEmpty() && !signupUiState.canEmail) {
+            isNeed = true
             text = stringResource(id = R.string.exist_email_error)
         }
         context.getString(R.string.password_confirm) -> if (signupUiState.passwordConfirm.isNotEmpty() && signupUiState.password != signupUiState.passwordConfirm) {
+            isNeed = true
             text = stringResource(id = R.string.password_match_error)
         }
         context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
+            isNeed = true
             text = stringResource(id = R.string.exist_nickname_error)
         }
     }
 
-    Text(
-        modifier = modifier,
-        text = text,
-        color = Color.Red
-    )
+    if (isNeed) {
+        Text(
+            text = text,
+            color = Color.Red
+        )
+    }
 }
 
 @Composable
 @Preview
 fun SignupPreview() {
-    SignupScreen(
-        onNavigateUp = { },
-        navigateBack = { },
-    )
+    WaffleTheme {
+        SignupScreen(
+            onNavigateUp = { },
+            navigateBack = { },
+        )
+    }
 }

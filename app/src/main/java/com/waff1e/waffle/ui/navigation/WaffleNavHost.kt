@@ -50,7 +50,8 @@ fun WaffleNavHost(
         composable(route = Login.route) {
             LoginScreen(
                 navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                navigateToWaffles = { navController.navigate(Waffles.route) }
             )
         }
 
