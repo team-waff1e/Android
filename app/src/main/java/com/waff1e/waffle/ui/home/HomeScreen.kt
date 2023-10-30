@@ -1,9 +1,5 @@
 package com.waff1e.waffle.ui.home
 
-import android.app.Activity
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,23 +18,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.ui.BackHandlerEndToast
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.ui.theme.WaffleTheme
-import okhttp3.internal.wait
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    canNavigateBack: Boolean = true,
     navigateToLogin: () -> Unit,
     navigateToSignup: () -> Unit,
     navigateToWaffles: () -> Unit,
@@ -47,8 +41,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             WaffleTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                canNavigationBack = canNavigateBack
+                hasNavigationIcon = false
             )
         }
     ) { innerPadding ->
@@ -68,18 +61,7 @@ fun HomeBody(
     onSignupBtnClicked: () -> Unit,
     onWafflesBtnClicked: () -> Unit
 ) {
-    var backWait = 0L
-    val context = LocalContext.current
-
-    // 뒤로가기시 종료 안내 Toast 메세지
-    BackHandler {
-        if (System.currentTimeMillis() - backWait >= 2000) {
-            backWait = System.currentTimeMillis()
-            Toast.makeText(context, context.getText(R.string.exit_toast_message), Toast.LENGTH_SHORT).show()
-        } else {
-            (context as? Activity)?.finish()
-        }
-    }
+    BackHandlerEndToast()
 
     Column(
         modifier = modifier

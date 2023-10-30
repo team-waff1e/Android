@@ -20,9 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +53,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.ui.BackHandlerEndToast
+import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.waffle.dto.WaffleResponse
@@ -61,16 +68,18 @@ import java.time.temporal.ChronoUnit
 fun WaffleListScreen(
     modifier: Modifier = Modifier,
     viewModel: WaffleListViewModel = hiltViewModel(),
-    canNavigationBack: Boolean = true,
-    onNavigateUp: () -> Unit,
-    navigateToWaffle: (Long) -> Unit
+    navigateToWaffle: (Long) -> Unit,
+    navigateToProfile: () -> Unit
 ) {
     Scaffold(
         topBar = {
             WaffleTopAppBar(
-                title = stringResource(id = R.string.waffles),
-                canNavigationBack = canNavigationBack,
-                navigateUp = onNavigateUp
+                hasNavigationIcon = true,
+                navigationIconClicked = {
+                    // TODO. 프로필 페이지 이동
+                    navigateToProfile()
+                },
+                imageVector = Icons.Filled.AccountCircle
             )
         },
     ) { innerPadding ->
@@ -89,6 +98,8 @@ fun WafflesBody(
     viewModel: WaffleListViewModel,
     onWaffleClick: (Long) -> Unit
 ) {
+    BackHandlerEndToast()
+
     WafflesLazyColumn(
         modifier = modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
@@ -115,7 +126,7 @@ fun WafflesLazyColumn(
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (isLoading) {
             items(20) {
@@ -128,17 +139,21 @@ fun WafflesLazyColumn(
                     item.id
                 }
             ) { _, item ->
-                WaffleCard(
+                WaffleListCard(
                     item = item,
                     onItemClick = onWaffleClick
                 )
+                
+                Box(modifier = Modifier.size(10.dp))
+
+                WaffleDivider()
             }
         }
     }
 }
 
 @Composable
-fun WaffleCard(
+fun WaffleListCard(
     modifier: Modifier = Modifier,
     item: WaffleResponse,
     onItemClick: (WaffleResponse) -> Unit
@@ -147,7 +162,7 @@ fun WaffleCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onItemClick(item) },
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -160,7 +175,7 @@ fun WaffleCard(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(Color.Green),
+                    .background(MaterialTheme.colorScheme.onBackground),
                 painter = painterResource(id = R.drawable.person),
                 contentDescription = "프로필 사진"
             )
@@ -180,7 +195,7 @@ fun WaffleCard(
                     ) {
                         Text(
                             text = item.member.nickname,
-                            style = Typography.titleMedium,
+                            style = Typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
 
@@ -203,15 +218,19 @@ fun WaffleCard(
                         )
                     }
 
-                    Image(
+                    Icon(
                         modifier = Modifier
                             .size(20.dp),
                         painter = painterResource(id = R.drawable.more_vert),
-                        contentDescription = "게시글 옵션"
+                        contentDescription = stringResource(id = R.string.waffle_option),
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
-                Text(text = item.content)
+                Text(
+                    text = item.content,
+                    style = Typography.bodyMedium
+                )
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(40.dp)
@@ -219,27 +238,35 @@ fun WaffleCard(
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Image(
+                        Icon(
                             modifier = Modifier
                                 .size(20.dp),
                             painter = painterResource(id = R.drawable.chat_bubble),
-                            contentDescription = "댓글 수"
+                            contentDescription = stringResource(id = R.string.comments_cnt),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
 
-                        Text(text = item.comments.toString())
+                        Text(
+                            text = item.comments.toString(),
+                            style = Typography.bodyMedium
+                        )
                     }
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Image(
+                        Icon(
                             modifier = Modifier
                                 .size(20.dp),
                             painter = painterResource(id = R.drawable.favorite),
-                            contentDescription = "좋아요 수"
+                            contentDescription = stringResource(id = R.string.likes_cnt),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
 
-                        Text(text = item.likes.toString())
+                        Text(
+                            text = item.likes.toString(),
+                            style = Typography.bodyMedium
+                        )
                     }
                 }
             }
@@ -254,7 +281,7 @@ fun LoadingWaffle(
     Card(
         modifier = Modifier
             .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -336,8 +363,8 @@ fun Modifier.loadingEffect(): Modifier = composed {
 @Preview
 fun WafflesPreview() {
     WaffleListScreen(
-        onNavigateUp = { },
-        navigateToWaffle = { },
+        navigateToWaffle = {  },
+        navigateToProfile = {  },
     )
 }
 

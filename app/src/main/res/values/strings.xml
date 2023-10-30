@@ -9,7 +9,7 @@
     <string name="waffle">Waffle</string>
 
     <!-- 요소 관련 -->
-    <string name="back_btn">뒤로가기</string>
+    <string name="navigation_icon">네비게이션 아이콘</string>
     <string name="email">이메일</string>
     <string name="password">비밀번호</string>
     <string name="password_confirm">비밀번호 확인</string>
@@ -17,6 +17,9 @@
     <string name="nickname">닉네임</string>
     <string name="signup_btn_text">계정 만들기</string>
     <string name="login_btn_text">로그인</string>
+    <string name="comments_cnt">댓글 수</string>
+    <string name="likes_cnt">좋아요 수</string>
+    <string name="waffle_option">게시글 옵션</string>
 
     <!-- 기타 -->
     <string name="home_title_text">지금 세계에서 무슨 일이 일어나고 있는지 알아보세요</string>

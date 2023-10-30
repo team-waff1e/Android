@@ -1,6 +1,5 @@
 package com.waff1e.waffle.auth.ui.login
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -42,10 +40,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
-import com.waff1e.waffle.auth.ui.signup.SupportingText
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import kotlinx.coroutines.launch
@@ -64,9 +60,8 @@ fun LoginScreen(
 
     Scaffold(topBar = {
         WaffleTopAppBar(
-            title = stringResource(id = R.string.app_name),
-            canNavigationBack = canNavigateBack,
-            navigateUp = onNavigateUp
+            hasNavigationIcon = canNavigateBack,
+            navigationIconClicked = onNavigateUp
         )
     }) { innerPadding ->
         LoginBody(
@@ -237,11 +232,6 @@ fun LoginTextField(
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-        isError = when (placeholderText) {
-            context.getString(R.string.email) -> !loginUiState.isEmailValid()
-            context.getString(R.string.password) -> !loginUiState.isPwdValid()
-            else -> false
-        },
         modifier = modifier
             .fillMaxWidth(),
     )
