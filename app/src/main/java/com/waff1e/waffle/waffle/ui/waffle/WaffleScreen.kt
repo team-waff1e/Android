@@ -51,13 +51,12 @@ fun WaffleScreen(
     viewModel: WaffleViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     navigateBack: () -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,
-                navigationIconClicked = onNavigateUp
+                navigationIconClicked = navigateBack
             )
         },
     ) { innerPadding ->

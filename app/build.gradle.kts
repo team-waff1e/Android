@@ -95,6 +95,10 @@ dependencies {
 
     // 상태바 투명하게 설정
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.18.0")
+
+    // 페이징3
+    implementation("androidx.paging:paging-runtime-ktx:3.2.1")
+    implementation("androidx.paging:paging-compose:3.3.0-alpha02")
 }
 
 kapt {

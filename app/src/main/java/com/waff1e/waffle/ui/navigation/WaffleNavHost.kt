@@ -1,9 +1,20 @@
 package com.waff1e.waffle.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -30,13 +41,30 @@ fun WaffleNavHost(
         startDestination = Waffles.route,
         modifier = modifier,
         enterTransition = {
-            EnterTransition.None
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                animationSpec = tween(500)
+            )
         },
         exitTransition = {
-            ExitTransition.None
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                animationSpec = tween(500)
+            )
+        },
+        popEnterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                animationSpec = tween(500)
+            )
+        },
+        popExitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                animationSpec = tween(500)
+            )
         }
     ) {
-        // TODO. navigate 관련 설정 추가 필요
         // 메인화면
         composable(route = Home.route) {
             HomeScreen(
@@ -48,8 +76,9 @@ fun WaffleNavHost(
         // 로그인 화면
         composable(route = Login.route) {
             LoginScreen(
-                navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() },
+                navigateBack = {
+                    navController.popBackStack()
+                },
                 navigateToWaffles = {
                     navController.navigate(Waffles.route) {
                         popUpTo(Home.route) { inclusive = true }
@@ -62,7 +91,6 @@ fun WaffleNavHost(
         composable(route = Signup.route) {
             SignupScreen(
                 navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() },
                 navigateToHome = { navController.navigate(Home.route) }
             )
         }
@@ -83,11 +111,10 @@ fun WaffleNavHost(
         // Waffle
         composable(
             route = "${Waffle.route}/{${Waffle.waffleArg}}",
-            arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType })
+            arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType }),
         ) {
             WaffleScreen(
                 navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() },
             )
         }
     }

@@ -53,7 +53,6 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
-    onNavigateUp: () -> Unit,
     navigateBack: () -> Unit,
     navigateToWaffles: () -> Unit
 ) {
@@ -62,7 +61,7 @@ fun LoginScreen(
     Scaffold(topBar = {
         WaffleTopAppBar(
             hasNavigationIcon = canNavigateBack,
-            navigationIconClicked = onNavigateUp
+            navigationIconClicked = navigateBack
         )
     }) { innerPadding ->
         LoginBody(
@@ -243,7 +242,6 @@ fun LoginTextField(
 @Preview
 fun LoginPreview() {
     LoginScreen(
-        onNavigateUp = {  },
         navigateBack = {  },
         navigateToWaffles = {  }
     )

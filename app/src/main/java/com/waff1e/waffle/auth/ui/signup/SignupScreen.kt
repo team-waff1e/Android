@@ -56,7 +56,6 @@ fun SignupScreen(
     modifier: Modifier = Modifier,
     viewModel: SignupViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
-    onNavigateUp: () -> Unit,
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit
 ) {
@@ -65,7 +64,7 @@ fun SignupScreen(
     Scaffold(topBar = {
         WaffleTopAppBar(
             hasNavigationIcon = canNavigateBack,
-            navigationIconClicked = onNavigateUp
+            navigationIconClicked = navigateBack
         )
     }) { innerPadding ->
         SignupBody(
@@ -359,7 +358,6 @@ fun SupportingText(
 fun SignupPreview() {
     WaffleTheme {
         SignupScreen(
-            onNavigateUp = {  },
             navigateBack = {  },
             navigateToHome = {  },
         )
