@@ -28,7 +28,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -47,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -172,6 +175,15 @@ fun WafflesLazyColumn(
 ) {
     var isLoading by remember { mutableStateOf(true) }
     val list = viewModel.waffleListUiState.value.waffleList
+    val listState = rememberLazyListState()
+
+    if (!listState.canScrollForward) {
+        Log.d("로그", " - WafflesLazyColumn() 호출됨 - 더이상 내리기 불가!!!!!")
+    }
+
+    if (!listState.canScrollBackward) {
+        Log.d("로그", " - WafflesLazyColumn() 호출됨 - 더이상 올리기 불가!!!!!")
+    }
 
     LaunchedEffect(key1 = isLoading, key2 = list) {
         if (list.isNotEmpty()) {
@@ -182,7 +194,8 @@ fun WafflesLazyColumn(
     LazyColumn(
         modifier = modifier
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        state = listState,
     ) {
 
 
