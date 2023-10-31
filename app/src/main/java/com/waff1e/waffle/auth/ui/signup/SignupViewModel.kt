@@ -19,27 +19,22 @@ class SignupViewModel @Inject constructor(
     var signupUiState by mutableStateOf(SignupUiState())
         private set
 
-    var emailTerm = mutableStateOf("")
-    var nicknameTerm = mutableStateOf("")
-
     fun updateSignupUiState(newSignupUiState: SignupUiState) {
         signupUiState = newSignupUiState.copy(
             canSignup = newSignupUiState.isValid()
         )
     }
 
-    suspend fun checkEmail(): ResponseResult {
+    suspend fun checkEmail() {
         val responseResult = authRepository.checkEmailStream(CheckEmailRequest(signupUiState.email)).check()
-        val checkSignupUiState = signupUiState.copy(email = emailTerm.value, canEmail = responseResult.isSuccess)
+        val checkSignupUiState = signupUiState.copy(canEmail = responseResult.isSuccess)
         updateSignupUiState(checkSignupUiState)
-        return responseResult
     }
 
-    suspend fun checkNickname(): ResponseResult {
-        val responseResult = authRepository.checkNickNameStream(CheckNickNameRequest(nicknameTerm.value)).check()
-        val checkSignupUiState = signupUiState.copy(nickname = nicknameTerm.value, canNickname = responseResult.isSuccess)
+    suspend fun checkNickname() {
+        val responseResult = authRepository.checkNickNameStream(CheckNickNameRequest(signupUiState.nickname)).check()
+        val checkSignupUiState = signupUiState.copy(canNickname = responseResult.isSuccess)
         updateSignupUiState(checkSignupUiState)
-        return responseResult
     }
 
     suspend fun requestSignup(): ResponseResult {

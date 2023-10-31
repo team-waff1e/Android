@@ -20,6 +20,7 @@
     <string name="comments_cnt">댓글 수</string>
     <string name="likes_cnt">좋아요 수</string>
     <string name="waffle_option">게시글 옵션</string>
+    <string name="profile_img">프로필 사진</string>
 
     <!-- 기타 -->
     <string name="home_title_text">지금 세계에서 무슨 일이 일어나고 있는지 알아보세요</string>

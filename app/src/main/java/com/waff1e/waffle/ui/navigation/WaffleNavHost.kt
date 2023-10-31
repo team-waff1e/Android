@@ -27,7 +27,7 @@ fun WaffleNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Home.route,
+        startDestination = Waffles.route,
         modifier = modifier,
         enterTransition = {
             EnterTransition.None
@@ -71,7 +71,12 @@ fun WaffleNavHost(
         composable(route = Waffles.route) {
             WaffleListScreen(
                 navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
-                navigateToProfile = { navController.navigate(route = "") }
+                navigateToProfile = { navController.navigate(route = "") },
+                navigateToHome = {
+                    navController.navigate(route = Home.route) {
+                        popUpTo(Home.route) { inclusive = false }
+                    }
+                }
             )
         }
 

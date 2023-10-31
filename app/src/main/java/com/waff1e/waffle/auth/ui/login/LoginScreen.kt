@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -156,6 +157,7 @@ fun LoginBody(
                 modifier = Modifier.padding(vertical = 7.dp),
                 text = stringResource(id = R.string.login),
                 style = Typography.labelMedium,
+                color = Color.White
             )
         }
     }
