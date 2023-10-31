@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -36,9 +37,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
@@ -53,14 +54,14 @@ fun LoginScreen(
     canNavigateBack: Boolean = true,
     onNavigateUp: () -> Unit,
     navigateBack: () -> Unit,
+    navigateToWaffles: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(topBar = {
         WaffleTopAppBar(
-            title = stringResource(id = R.string.app_name),
-            canNavigationBack = canNavigateBack,
-            navigateUp = onNavigateUp
+            hasNavigationIcon = canNavigateBack,
+            navigationIconClicked = onNavigateUp
         )
     }) { innerPadding ->
         LoginBody(
@@ -74,7 +75,7 @@ fun LoginScreen(
 
                     if (responseResult.isSuccess) {
                         // TODO. 로그인 성공 처리
-
+                        navigateToWaffles()
                     } else {
                         // TODO. 로그인 실패 처리
                         
@@ -107,15 +108,18 @@ fun LoginBody(
             .fillMaxSize()
             .padding(25.dp)
             .onFocusChanged { isFocused = it.hasFocus },
-        verticalArrangement = Arrangement.spacedBy(30.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "로그인",
-            fontSize = 30.sp
+            modifier = Modifier
+                .fillMaxWidth(),
+            text = stringResource(id = R.string.login_title_text),
+            style = Typography.titleLarge,
+            textAlign = TextAlign.Start,
         )
 
-        Box(modifier = Modifier.weight(0.5f))
+        Box(modifier = Modifier.size(10.dp))
 
         LoginTextField(
             placeholderText = stringResource(id = R.string.email),
@@ -145,14 +149,13 @@ fun LoginBody(
             onClick = onLoginBtnClicked,
             enabled = loginUiState.canLogin,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 30.dp),
+                .fillMaxWidth(),
             shape = ShapeDefaults.Medium,
         ) {
             Text(
-                modifier = Modifier.padding(0.dp, 5.dp),
-                text = "로그인",
-                style = Typography.bodyLarge,
+                modifier = Modifier.padding(vertical = 7.dp),
+                text = stringResource(id = R.string.login),
+                style = Typography.labelMedium,
             )
         }
     }
@@ -229,11 +232,6 @@ fun LoginTextField(
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-        isError = when (placeholderText) {
-            context.getString(R.string.email) -> !loginUiState.isEmailValid()
-            context.getString(R.string.password) -> !loginUiState.isPwdValid()
-            else -> false
-        },
         modifier = modifier
             .fillMaxWidth(),
     )
@@ -243,7 +241,8 @@ fun LoginTextField(
 @Preview
 fun LoginPreview() {
     LoginScreen(
-        onNavigateUp = { },
-        navigateBack = { },
+        onNavigateUp = {  },
+        navigateBack = {  },
+        navigateToWaffles = {  }
     )
 }

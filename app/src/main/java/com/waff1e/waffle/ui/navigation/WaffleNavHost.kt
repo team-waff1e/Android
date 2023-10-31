@@ -40,7 +40,6 @@ fun WaffleNavHost(
         // 메인화면
         composable(route = Home.route) {
             HomeScreen(
-                canNavigateBack = false,
                 navigateToLogin = { navController.navigate(Login.route) },
                 navigateToSignup = { navController.navigate(Signup.route) },
                 navigateToWaffles = { navController.navigate(Waffles.route) })
@@ -50,7 +49,12 @@ fun WaffleNavHost(
         composable(route = Login.route) {
             LoginScreen(
                 navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                navigateToWaffles = {
+                    navController.navigate(Waffles.route) {
+                        popUpTo(Home.route) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -58,15 +62,16 @@ fun WaffleNavHost(
         composable(route = Signup.route) {
             SignupScreen(
                 navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() }
+                onNavigateUp = { navController.navigateUp() },
+                navigateToHome = { navController.navigate(Home.route) }
             )
         }
 
         // Waffles(리스트) 화면
         composable(route = Waffles.route) {
             WaffleListScreen(
-                onNavigateUp = { navController.navigateUp() },
-                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") }
+                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
+                navigateToProfile = { navController.navigate(route = "") }
             )
         }
 

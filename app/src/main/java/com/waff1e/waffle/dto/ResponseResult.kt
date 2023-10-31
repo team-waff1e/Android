@@ -17,10 +17,7 @@ data class ResponseResult(
 fun Response<DefaultResponse>.check(): ResponseResult {
     val responseResult = ResponseResult(isSuccess = isSuccessful, statusCode = code())
 
-    if (this.isSuccessful) {
-        Log.d("로그", "Response<T>.check() - 응답 성공")
-    } else {
-        Log.d("로그", "Response<T>.check() - 응답 실패")
+    if (!this.isSuccessful) {
         val body = errorBody()?.string()
         responseResult.body = Json.decodeFromString<DefaultResponse>(body!!)
     }

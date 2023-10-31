@@ -13,3 +13,5 @@ val Pink40 = Color(0xFF7D5260)
 val WaffleBrown1 = Color(0xFFD9730D)
 val WaffleBrown2 = Color(0xFFF4993E)
 val WaffleBrown3 = Color(0xFFE8C14A)
+
+val Error = Color(0xFFD32F2F)

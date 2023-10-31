@@ -26,11 +26,17 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     WaffleTheme {
+        WaffleApp()
     }
 }
