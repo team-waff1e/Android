@@ -50,7 +50,10 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -71,7 +74,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -85,6 +90,7 @@ import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.home.LoginButton
+import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.waffle.dto.WaffleResponse
 import kotlinx.coroutines.launch
@@ -103,8 +109,11 @@ fun WaffleListScreen(
     navigateToProfile: () -> Unit,
     navigateToHome: () -> Unit,
 ) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
     var backWait = 0L
     val context = LocalContext.current
 
@@ -135,6 +144,8 @@ fun WaffleListScreen(
         scrimColor = Color.Black.copy(alpha = 0.7f)
     ) {
         Scaffold(
+            modifier = modifier
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 WaffleTopAppBar(
                     hasNavigationIcon = true,
@@ -145,7 +156,8 @@ fun WaffleListScreen(
                             }
                         }
                     },
-                    imageVector = Icons.Filled.AccountCircle
+                    imageVector = Icons.Filled.AccountCircle,
+                    scrollBehavior = scrollBehavior
                 )
             },
         ) { innerPadding ->
@@ -403,150 +415,6 @@ fun LoadingWaffle(
                 )
             }
         }
-    }
-}
-
-fun Modifier.loadingEffect(): Modifier = composed {
-    var size by remember {
-        mutableStateOf(IntSize.Zero)
-    }
-
-    val transition = rememberInfiniteTransition(label = "")
-    val translateAnimation by transition.animateFloat(
-        initialValue = -2 * size.width.toFloat(),
-        targetValue = 2 * size.width.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearOutSlowInEasing)
-        ),
-        label = ""
-    )
-
-    background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                Color.LightGray.copy(alpha = 0.9f),
-                Color.LightGray.copy(alpha = 0.4f),
-            ),
-            start = Offset(translateAnimation, translateAnimation),
-            end = Offset(
-                translateAnimation + size.width.toFloat(),
-                translateAnimation + size.height.toFloat()
-            ),
-            tileMode = TileMode.Mirror
-        )
-    )
-        .onGloballyPositioned {
-            size = it.size
-        }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WaffleListDrawerSheet(
-    modifier: Modifier = Modifier,
-    onLogoutClicked: () -> Unit,
-
-    ) {
-    ModalDrawerSheet(
-        modifier = modifier
-            .fillMaxWidth(0.8f),
-        drawerShape = RectangleShape,
-        drawerContainerColor = MaterialTheme.colorScheme.background,
-        drawerTonalElevation = 0.dp
-    ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(20.dp),
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                Image(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onBackground),
-                    painter = painterResource(id = R.drawable.person),
-                    contentDescription = stringResource(id = R.string.profile_img),
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
-                )
-
-                Text(
-                    text = "사용자명",
-                    style = Typography.titleSmall.copy(
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
-                Text(
-                    text = "1 팔로잉 0 팔로워",
-                    style = Typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onPrimary.copy(
-                            alpha = 0.5f
-                        )
-                    )
-                )
-            }
-
-            WaffleDivider(
-                topPadding = 40.dp,
-                bottomPadding = 25.dp
-            )
-
-            Column {
-                DrawerListItem(
-                    imageVector = Icons.Filled.Person,
-                    text = "프로필"
-                )
-
-                DrawerListItem(
-                    imageVector = Icons.Filled.Star,
-                    text = "북마크"
-                )
-            }
-
-            WaffleDivider(
-                topPadding = 25.dp,
-                bottomPadding = 40.dp
-            )
-
-            Spacer(modifier = modifier.weight(1f))
-
-            LoginButton(
-                onClicked = { onLogoutClicked() },
-                text = "로그아웃"
-            )
-        }
-    }
-}
-
-@Composable
-fun DrawerListItem(
-    modifier: Modifier = Modifier,
-    imageVector: ImageVector,
-    text: String,
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { }
-            .padding(vertical = 15.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            modifier = modifier
-                .size(25.dp),
-            imageVector = imageVector,
-            contentDescription = "Drawer 아이템 아이콘"
-        )
-
-        Text(
-            text = text,
-            style = Typography.titleMedium
-        )
     }
 }
 
