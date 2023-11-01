@@ -44,8 +44,7 @@ import com.waff1e.waffle.ui.theme.Typography
 fun WaffleListDrawerSheet(
     modifier: Modifier = Modifier,
     onLogoutClicked: () -> Unit,
-
-    ) {
+) {
     ModalDrawerSheet(
         modifier = modifier
             .fillMaxWidth(0.8f),

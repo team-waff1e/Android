@@ -39,13 +39,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,9 +65,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
+import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.waffle.dto.WaffleResponse
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import java.time.LocalDateTime
@@ -136,7 +143,8 @@ fun WaffleListScreen(
                 modifier = modifier
                     .padding(innerPadding),
                 onWaffleClick = navigateToWaffle,
-                waffleListUiState = { viewModel.waffleListUiState }
+                waffleListUiState = { viewModel.waffleListUiState },
+                getWaffleList = viewModel::getWaffleList,
             )
         }
     }
@@ -146,13 +154,15 @@ fun WaffleListScreen(
 fun WafflesBody(
     modifier: Modifier = Modifier,
     onWaffleClick: (Long) -> Unit,
-    waffleListUiState: () -> State<WaffleListUiState>
+    waffleListUiState: () -> State<WaffleListUiState>,
+    getWaffleList: suspend (Boolean) -> Unit,
 ) {
     WafflesLazyColumn(
         modifier = modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         onWaffleClick = { onWaffleClick(it.id) },
-        waffleListUiState = waffleListUiState
+        waffleListUiState = waffleListUiState,
+        getWaffleList = getWaffleList,
     )
 }
 
@@ -161,22 +171,28 @@ fun WafflesBody(
 fun WafflesLazyColumn(
     modifier: Modifier = Modifier,
     onWaffleClick: (WaffleResponse) -> Unit,
-    waffleListUiState: () -> State<WaffleListUiState>
+    waffleListUiState: () -> State<WaffleListUiState>,
+    getWaffleList: suspend (Boolean) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(true) }
     val list = waffleListUiState().value.waffleList
     val listState = rememberLazyListState()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isLoading,
-        onRefresh = { 
-            // TODO. refresh 작업 추가
-            Log.d("로그", " - WafflesLazyColumn() - pullRefreshState - onRefresh() 호출됨 ")
-
+        onRefresh = {
+            coroutineScope.launch {
+                getWaffleList(true)
+            }
         }
     )
 
-    if (!listState.canScrollForward) {
-        Log.d("로그", " - WafflesLazyColumn() 호출됨 - 더이상 내리기 불가!!!!!")
+    val isEnd by remember { derivedStateOf { listState.isEnd() } }
+
+    if (isEnd) {
+        LaunchedEffect(Unit) {
+            getWaffleList(false)
+        }
     }
 
     LaunchedEffect(key1 = isLoading, key2 = list) {
@@ -195,7 +211,7 @@ fun WafflesLazyColumn(
             modifier = modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            state = listState,
+            state = if (isLoading) rememberLazyListState() else listState,
         ) {
             if (isLoading) {
                 items(20) {
