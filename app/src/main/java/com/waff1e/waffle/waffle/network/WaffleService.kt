@@ -13,7 +13,7 @@ interface WaffleService {
     suspend fun getWaffleList(
         @Query("limit") limit: Int,
         @Query("isUpdate") isUpdate: Boolean,
-        @Query("idx") idx: Int?
+        @Query("idx") idx: Long?
     ): Response<WaffleListSuccessResponse>
 
     @GET("waffles/{id}")

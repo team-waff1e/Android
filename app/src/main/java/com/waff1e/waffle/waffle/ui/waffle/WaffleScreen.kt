@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,7 +64,7 @@ fun WaffleScreen(
         WaffleBody(
             modifier = modifier
                 .padding(innerPadding),
-            viewModel = viewModel
+            waffleUiState = { viewModel.waffleUiState }
         )
     }
 }
@@ -71,9 +72,9 @@ fun WaffleScreen(
 @Composable
 fun WaffleBody(
     modifier: Modifier = Modifier,
-    viewModel: WaffleViewModel,
+    waffleUiState: () -> State<WaffleUiState>
 ) {
-    val waffleUiState = viewModel.waffleUiState
+    val waffleUiState = waffleUiState()
 
     Column(
         modifier = modifier
@@ -240,7 +241,7 @@ fun WaffleCardPreview(
     )
 
     WaffleListCard(
-        item = waffleResponse,
+        item = { waffleResponse },
         onItemClick = {}
     )
 }

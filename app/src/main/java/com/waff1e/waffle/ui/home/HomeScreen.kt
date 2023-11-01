@@ -35,8 +35,6 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     navigateToLogin: () -> Unit,
     navigateToSignup: () -> Unit,
-    navigateToWaffles: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     Scaffold(
         topBar = {
@@ -49,7 +47,6 @@ fun HomeScreen(
             modifier = modifier.padding(innerPadding),
             onLoginBtnClicked = navigateToLogin,
             onSignupBtnClicked = navigateToSignup,
-            onWafflesBtnClicked = navigateToWaffles
         )
     }
 }
@@ -59,7 +56,6 @@ fun HomeBody(
     modifier: Modifier = Modifier,
     onLoginBtnClicked: () -> Unit,
     onSignupBtnClicked: () -> Unit,
-    onWafflesBtnClicked: () -> Unit
 ) {
     BackHandlerEndToast()
 
@@ -144,7 +140,6 @@ fun HomePreview() {
         HomeScreen(
             navigateToLogin = { },
             navigateToSignup = { },
-            navigateToWaffles = { }
         )
     }
 }

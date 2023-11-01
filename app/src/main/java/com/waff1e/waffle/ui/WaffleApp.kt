@@ -2,13 +2,21 @@ package com.waff1e.waffle.ui
 
 import android.app.Activity
 import android.service.voice.VoiceInteractionSession.ActivityId
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -18,12 +26,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -44,6 +67,7 @@ fun WaffleTopAppBar(
     hasNavigationIcon: Boolean,
     navigationIconClicked: () -> Unit = { },
     imageVector: ImageVector = Icons.Filled.ArrowBack,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     if (hasNavigationIcon) {
         CenterAlignedTopAppBar(
@@ -62,6 +86,7 @@ fun WaffleTopAppBar(
                     )
                 }
             },
+            scrollBehavior = scrollBehavior
         )
     } else {
         CenterAlignedTopAppBar(
@@ -72,6 +97,7 @@ fun WaffleTopAppBar(
                 )
             },
             modifier = modifier,
+            scrollBehavior = scrollBehavior
         )
     }
 }
@@ -114,4 +140,42 @@ fun WaffleDivider(
     )
 
     Spacer(modifier = modifier.size(bottomPadding))
+}
+
+fun Modifier.loadingEffect(): Modifier = composed {
+    var size by remember {
+        mutableStateOf(IntSize.Zero)
+    }
+
+    val transition = rememberInfiniteTransition(label = "")
+    val translateAnimation by transition.animateFloat(
+        initialValue = -2 * size.width.toFloat(),
+        targetValue = 2 * size.width.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearOutSlowInEasing)
+        ),
+        label = ""
+    )
+
+    background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color.LightGray.copy(alpha = 0.9f),
+                Color.LightGray.copy(alpha = 0.4f),
+            ),
+            start = Offset(translateAnimation, translateAnimation),
+            end = Offset(
+                translateAnimation + size.width.toFloat(),
+                translateAnimation + size.height.toFloat()
+            ),
+            tileMode = TileMode.Mirror
+        )
+    )
+        .onGloballyPositioned {
+            size = it.size
+        }
+}
+
+fun LazyListState.isEnd(): Boolean {
+    return layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
 }
