@@ -4,59 +4,43 @@ import android.app.Activity
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,32 +48,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.lerp
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
-import com.waff1e.waffle.ui.home.LoginButton
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.waffle.dto.WaffleResponse
@@ -98,7 +70,6 @@ import kotlinx.datetime.toJavaLocalDateTime
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import androidx.compose.foundation.layout.Box as Box
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,8 +135,8 @@ fun WaffleListScreen(
             WafflesBody(
                 modifier = modifier
                     .padding(innerPadding),
-                viewModel = viewModel,
-                onWaffleClick = navigateToWaffle
+                onWaffleClick = navigateToWaffle,
+                waffleListUiState = { viewModel.waffleListUiState }
             )
         }
     }
@@ -174,14 +145,14 @@ fun WaffleListScreen(
 @Composable
 fun WafflesBody(
     modifier: Modifier = Modifier,
-    viewModel: WaffleListViewModel,
     onWaffleClick: (Long) -> Unit,
+    waffleListUiState: () -> State<WaffleListUiState>
 ) {
     WafflesLazyColumn(
         modifier = modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-        viewModel = viewModel,
-        onWaffleClick = { onWaffleClick(it.id) }
+        onWaffleClick = { onWaffleClick(it.id) },
+        waffleListUiState = waffleListUiState
     )
 }
 
@@ -189,23 +160,23 @@ fun WafflesBody(
 @Composable
 fun WafflesLazyColumn(
     modifier: Modifier = Modifier,
-    viewModel: WaffleListViewModel,
     onWaffleClick: (WaffleResponse) -> Unit,
+    waffleListUiState: () -> State<WaffleListUiState>
 ) {
     var isLoading by remember { mutableStateOf(true) }
-    val list = viewModel.waffleListUiState.value.waffleList
+    val list = waffleListUiState().value.waffleList
     val listState = rememberLazyListState()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isLoading,
-        onRefresh = { }
+        onRefresh = { 
+            // TODO. refresh 작업 추가
+            Log.d("로그", " - WafflesLazyColumn() - pullRefreshState - onRefresh() 호출됨 ")
+
+        }
     )
 
     if (!listState.canScrollForward) {
         Log.d("로그", " - WafflesLazyColumn() 호출됨 - 더이상 내리기 불가!!!!!")
-    }
-
-    if (!listState.canScrollBackward) {
-        Log.d("로그", " - WafflesLazyColumn() 호출됨 - 더이상 올리기 불가!!!!!")
     }
 
     LaunchedEffect(key1 = isLoading, key2 = list) {
@@ -214,46 +185,58 @@ fun WafflesLazyColumn(
         }
     }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        state = listState,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
+        contentAlignment = Alignment.TopCenter
     ) {
-        if (isLoading) {
-            items(20) {
-                LoadingWaffle()
-            }
-        } else {
-            itemsIndexed(
-                items = list,
-                key = { _, item ->
-                    item.id
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            state = listState,
+        ) {
+            if (isLoading) {
+                items(20) {
+                    LoadingWaffle()
                 }
-            ) { _, item ->
-                WaffleListCard(
-                    item = item,
-                    onItemClick = onWaffleClick
-                )
+            } else {
+                itemsIndexed(
+                    items = list,
+                    key = { _, item ->
+                        item.id
+                    }
+                ) { _, item ->
+                    WaffleListCard(
+                        item = { item },
+                        onItemClick = onWaffleClick
+                    )
 
-                Box(modifier = Modifier.size(10.dp))
+                    Box(modifier = Modifier.size(10.dp))
 
-                WaffleDivider()
+                    WaffleDivider()
+                }
             }
         }
+
+        PullRefreshIndicator(
+            refreshing = isLoading,
+            state = pullRefreshState
+        )
     }
 }
 
 @Composable
 fun WaffleListCard(
     modifier: Modifier = Modifier,
-    item: WaffleResponse,
+    item: () -> WaffleResponse,
     onItemClick: (WaffleResponse) -> Unit,
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onItemClick(item) },
+            .clickable { onItemClick(item()) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Row(
@@ -287,19 +270,19 @@ fun WaffleListCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = item.member.nickname,
+                            text = item().member.nickname,
                             style = Typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
 
                         // TODO. 시간, 일, 주, 달 순으로 디테일하게 변경하도록 추가
                         val diff = ChronoUnit.HOURS.between(
-                            item.createdAt.toJavaLocalDateTime(),
+                            item().createdAt.toJavaLocalDateTime(),
                             LocalDateTime.now()
                         )
 
                         val dateString = if (diff >= 24) {
-                            item.createdAt.toJavaLocalDateTime()
+                            item().createdAt.toJavaLocalDateTime()
                                 .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
                         } else {
                             "${diff}h"
@@ -321,7 +304,7 @@ fun WaffleListCard(
                 }
 
                 Text(
-                    text = item.content,
+                    text = item().content,
                     style = Typography.bodyMedium
                 )
 
@@ -340,7 +323,7 @@ fun WaffleListCard(
                         )
 
                         Text(
-                            text = item.comments.toString(),
+                            text = item().comments.toString(),
                             style = Typography.bodyMedium
                         )
                     }
@@ -357,7 +340,7 @@ fun WaffleListCard(
                         )
 
                         Text(
-                            text = item.likes.toString(),
+                            text = item().likes.toString(),
                             style = Typography.bodyMedium
                         )
                     }

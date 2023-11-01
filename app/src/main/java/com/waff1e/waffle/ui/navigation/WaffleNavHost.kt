@@ -69,8 +69,8 @@ fun WaffleNavHost(
         composable(route = Home.route) {
             HomeScreen(
                 navigateToLogin = { navController.navigate(Login.route) },
-                navigateToSignup = { navController.navigate(Signup.route) },
-                navigateToWaffles = { navController.navigate(Waffles.route) })
+                navigateToSignup = { navController.navigate(Signup.route) }
+            )
         }
 
         // 로그인 화면

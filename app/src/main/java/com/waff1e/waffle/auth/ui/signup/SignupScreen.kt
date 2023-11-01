@@ -49,6 +49,7 @@ import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.ui.theme.WaffleTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.reflect.KSuspendFunction0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +85,8 @@ fun SignupScreen(
                     }
                 }
             },
-            viewModel = viewModel
+            checkEmail = viewModel::checkEmail,
+            checkNickname = viewModel::checkNickname
         )
     }
 }
@@ -96,7 +98,8 @@ fun SignupBody(
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
     onSignupBtnClicked: () -> Unit,
-    viewModel: SignupViewModel,
+    checkEmail: suspend () -> Unit,
+    checkNickname: suspend () -> Unit
 ) {
     // Composable에 포커스가 있는지 확인하는 변수
     var isFocused by remember { mutableStateOf(false) }
@@ -127,56 +130,61 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.email),
-            value = viewModel.signupUiState.email,
+            value = signupUiState.email,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
-            viewModel = viewModel
+            checkEmail = checkEmail,
+            checkNickname = checkNickname,
         )
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.name),
-            value = viewModel.signupUiState.name,
+            value = signupUiState.name,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            viewModel = viewModel
+            checkEmail = checkEmail,
+            checkNickname = checkNickname,
         )
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.password),
-            value = viewModel.signupUiState.password,
+            value = signupUiState.password,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
             ),
-            viewModel = viewModel
+            checkEmail = checkEmail,
+            checkNickname = checkNickname,
         )
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.password_confirm),
-            value = viewModel.signupUiState.passwordConfirm,
+            value = signupUiState.passwordConfirm,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
             ),
-            viewModel = viewModel
+            checkEmail = checkEmail,
+            checkNickname = checkNickname,
         )
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.nickname),
-            value = viewModel.signupUiState.nickname,
+            value = signupUiState.nickname,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            viewModel = viewModel
+            checkEmail = checkEmail,
+            checkNickname = checkNickname,
         )
 
         Box(modifier = Modifier.weight(1f))
@@ -206,7 +214,8 @@ fun SignupTextField(
     value: String,
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
-    viewModel: SignupViewModel,
+    checkEmail: suspend () -> Unit,
+    checkNickname: suspend () -> Unit
 ) {
     // 포커스 관리하는 포커스 매니저
     val focusManager = LocalFocusManager.current
@@ -230,7 +239,7 @@ fun SignupTextField(
             LaunchedEffect(key1 = signupUiState.email) {
                 delay(debounceTime)
                 if (signupUiState.email.isNotBlank()) {
-                    viewModel.checkEmail()
+                    checkEmail()
                 }
             }
         }
@@ -239,7 +248,7 @@ fun SignupTextField(
             LaunchedEffect(key1 = signupUiState.nickname) {
                 delay(debounceTime)
                 if (signupUiState.nickname.isNotBlank()) {
-                    viewModel.checkNickname()
+                    checkNickname()
                 }
             }
         }
@@ -347,6 +356,7 @@ fun SupportingText(
 
     if (isNeed) {
         Text(
+            modifier = modifier,
             text = text,
             color = Error
         )
