@@ -1,9 +1,14 @@
 package com.waff1e.waffle.ui
 
 import android.app.Activity
+import android.service.voice.VoiceInteractionSession.ActivityId
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -18,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -95,11 +101,17 @@ fun BackHandlerEndToast(
 @Composable
 fun WaffleDivider(
     modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,
+    bottomPadding: Dp = 0.dp,
 ) {
+    Spacer(modifier = modifier.size(topPadding))
+
     Divider(
         modifier = Modifier
             .fillMaxWidth(),
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f),
         thickness = 1.dp
     )
+
+    Spacer(modifier = modifier.size(bottomPadding))
 }

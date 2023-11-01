@@ -3,7 +3,6 @@ package com.waff1e.waffle.waffle.ui.waffle
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,13 +51,12 @@ fun WaffleScreen(
     viewModel: WaffleViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     navigateBack: () -> Unit,
-    onNavigateUp: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,
-                navigationIconClicked = onNavigateUp
+                navigationIconClicked = navigateBack
             )
         },
     ) { innerPadding ->
@@ -76,8 +74,6 @@ fun WaffleBody(
     viewModel: WaffleViewModel,
 ) {
     val waffleUiState = viewModel.waffleUiState
-
-    Log.d("로그", " - WaffleBody() 호출됨 - ${waffleUiState.value.waffle}")
 
     Column(
         modifier = modifier
@@ -126,7 +122,8 @@ fun WaffleCard(
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onBackground),
                     painter = painterResource(id = R.drawable.person),
-                    contentDescription = "프로필 사진"
+                    contentDescription = stringResource(id = R.string.profile_img),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
                 )
 
                 Row(

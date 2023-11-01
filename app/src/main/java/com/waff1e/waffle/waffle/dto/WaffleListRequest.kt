@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class WaffleListRequest(
-    val limit: Int,
-    val isUpdate: Boolean,
-    val idx: Int
+    val limit: Int = 20,
+    val isUpdate: Boolean = true,
+    val idx: Int? = null
 )

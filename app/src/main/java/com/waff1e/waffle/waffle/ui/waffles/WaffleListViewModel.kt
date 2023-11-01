@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
 import com.waff1e.waffle.waffle.dto.WaffleListRequest
+import com.waff1e.waffle.waffle.dto.WaffleResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -29,15 +30,17 @@ class WaffleListViewModel @Inject constructor(
         val waffleListRequest = WaffleListRequest(
             limit = LIMIT,
             isUpdate = isUpdate,
-            idx = 0,
+            idx = null,
         )
 
-        // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
-//        val responseResult = waffleRepository.requestWaffleList(waffleListRequest).check()
-        val responseResult = waffleRepository.requestWaffleList()
+        val responseResult = waffleRepository.requestWaffleList(waffleListRequest.limit, waffleListRequest.isUpdate, waffleListRequest.idx)
 
         if (responseResult.isSuccessful) {
-            waffleListUiState.value = waffleListUiState.value.copy(waffleList = responseResult.body()!!.list)
+            val newList = waffleListUiState.value.waffleList.toMutableList()
+            newList.addAll(responseResult.body()!!.list)
+            newList.sortByDescending { it.updatedAt }
+            waffleListUiState.value = waffleListUiState.value.copy(waffleList = newList)
+
         } else {
             val body = Json.decodeFromString<WaffleListFailResponse>(responseResult.errorBody()?.string()!!)
             waffleListUiState.value = waffleListUiState.value.copy(errorCode = body.errorCode)

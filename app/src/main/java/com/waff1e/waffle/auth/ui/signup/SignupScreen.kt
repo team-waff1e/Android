@@ -56,7 +56,6 @@ fun SignupScreen(
     modifier: Modifier = Modifier,
     viewModel: SignupViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
-    onNavigateUp: () -> Unit,
     navigateBack: () -> Unit,
     navigateToHome: () -> Unit
 ) {
@@ -65,7 +64,7 @@ fun SignupScreen(
     Scaffold(topBar = {
         WaffleTopAppBar(
             hasNavigationIcon = canNavigateBack,
-            navigationIconClicked = onNavigateUp
+            navigationIconClicked = navigateBack
         )
     }) { innerPadding ->
         SignupBody(
@@ -128,7 +127,7 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.email),
-            value = viewModel.emailTerm.value,
+            value = viewModel.signupUiState.email,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(
@@ -173,7 +172,7 @@ fun SignupBody(
 
         SignupTextField(
             placeholderText = stringResource(id = R.string.nickname),
-            value = viewModel.nicknameTerm.value,
+            value = viewModel.signupUiState.nickname,
             signupUiState = signupUiState,
             onItemValueChanged = onItemValueChanged,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -228,23 +227,19 @@ fun SignupTextField(
 
     when (placeholderText) {
         context.getString(R.string.email) -> {
-            LaunchedEffect(key1 = viewModel.emailTerm.value) {
+            LaunchedEffect(key1 = signupUiState.email) {
                 delay(debounceTime)
-                if (viewModel.emailTerm.value.isNotBlank()) {
+                if (signupUiState.email.isNotBlank()) {
                     viewModel.checkEmail()
-                } else {
-                    viewModel.updateSignupUiState(viewModel.signupUiState.copy(email = viewModel.emailTerm.value))
                 }
             }
         }
 
         context.getString(R.string.nickname) -> {
-            LaunchedEffect(key1 = viewModel.nicknameTerm.value) {
+            LaunchedEffect(key1 = signupUiState.nickname) {
                 delay(debounceTime)
-                if (viewModel.nicknameTerm.value.isNotBlank()) {
+                if (signupUiState.nickname.isNotBlank()) {
                     viewModel.checkNickname()
-                } else {
-                    viewModel.updateSignupUiState(viewModel.signupUiState.copy(nickname = viewModel.nicknameTerm.value))
                 }
             }
         }
@@ -254,21 +249,11 @@ fun SignupTextField(
         value = value,
         onValueChange = {
             when (placeholderText) {
-                context.getString(R.string.email) -> viewModel.emailTerm.value = it
+                context.getString(R.string.email) -> onItemValueChanged(signupUiState.copy(email = it))
                 context.getString(R.string.name) -> onItemValueChanged(signupUiState.copy(name = it))
-                context.getString(R.string.password) -> onItemValueChanged(
-                    signupUiState.copy(
-                        password = it
-                    )
-                )
-
-                context.getString(R.string.password_confirm) -> onItemValueChanged(
-                    signupUiState.copy(
-                        passwordConfirm = it
-                    )
-                )
-
-                context.getString(R.string.nickname) -> viewModel.nicknameTerm.value = it
+                context.getString(R.string.password) -> onItemValueChanged(signupUiState.copy(password = it))
+                context.getString(R.string.password_confirm) -> onItemValueChanged(signupUiState.copy(passwordConfirm = it))
+                context.getString(R.string.nickname) -> onItemValueChanged(signupUiState.copy(nickname = it))
             }
         },
         label = {
@@ -373,7 +358,6 @@ fun SupportingText(
 fun SignupPreview() {
     WaffleTheme {
         SignupScreen(
-            onNavigateUp = {  },
             navigateBack = {  },
             navigateToHome = {  },
         )

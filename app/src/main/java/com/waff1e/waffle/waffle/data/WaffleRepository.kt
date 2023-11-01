@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 interface WaffleRepository {
     // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
-    suspend fun requestWaffleList(): Response<WaffleListSuccessResponse>
+    suspend fun requestWaffleList(limit: Int, isUpdate: Boolean, idx: Int?): Response<WaffleListSuccessResponse>
 
     suspend fun requestWaffle(id: Long): Response<WaffleResponse>
 }
@@ -17,8 +17,8 @@ class DefaultWaffleRepository @Inject constructor(
     private val waffleService: WaffleService
 ) : WaffleRepository {
     // TODO. GET 메소드에서 데이터 전송 방식 설정 필요
-    override suspend fun requestWaffleList(): Response<WaffleListSuccessResponse> {
-        return waffleService.getWaffleList()
+    override suspend fun requestWaffleList(limit: Int, isUpdate: Boolean, idx: Int?): Response<WaffleListSuccessResponse> {
+        return waffleService.getWaffleList(limit, isUpdate, idx)
     }
 
     override suspend fun requestWaffle(id: Long): Response<WaffleResponse> {
