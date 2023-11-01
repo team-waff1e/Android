@@ -1,7 +1,6 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -39,8 +38,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -48,7 +47,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,9 +67,7 @@ import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.waffle.dto.WaffleResponse
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import java.time.LocalDateTime
@@ -87,7 +83,7 @@ fun WaffleListScreen(
     navigateToProfile: () -> Unit,
     navigateToHome: () -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -175,29 +171,34 @@ fun WafflesLazyColumn(
     getWaffleList: suspend (Boolean) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var isLoading by remember { mutableStateOf(true) }
+    var isInitialize by remember { mutableStateOf(true) }
     val list = waffleListUiState().value.waffleList
+    val isRefreshing = remember {
+        mutableStateOf(false)
+    }
     val listState = rememberLazyListState()
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = isLoading,
+        refreshing = isRefreshing.value,
         onRefresh = {
             coroutineScope.launch {
+                isRefreshing.value = true
                 getWaffleList(true)
+                isRefreshing.value = false
             }
         }
     )
+
+    LaunchedEffect(key1 = isInitialize, key2 = list) {
+        if (list.isNotEmpty()) {
+            isInitialize = false
+        }
+    }
 
     val isEnd by remember { derivedStateOf { listState.isEnd() } }
 
     if (isEnd) {
         LaunchedEffect(Unit) {
             getWaffleList(false)
-        }
-    }
-
-    LaunchedEffect(key1 = isLoading, key2 = list) {
-        if (list.isNotEmpty()) {
-            isLoading = false
         }
     }
 
@@ -211,9 +212,9 @@ fun WafflesLazyColumn(
             modifier = modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            state = if (isLoading) rememberLazyListState() else listState,
+            state = if (isInitialize) rememberLazyListState() else listState,
         ) {
-            if (isLoading) {
+            if (isInitialize) {
                 items(20) {
                     LoadingWaffle()
                 }
@@ -237,7 +238,8 @@ fun WafflesLazyColumn(
         }
 
         PullRefreshIndicator(
-            refreshing = isLoading,
+            modifier = modifier,
+            refreshing = isRefreshing.value,
             state = pullRefreshState
         )
     }

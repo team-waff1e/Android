@@ -11,7 +11,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import retrofit2.Response
-import java.util.Collections.addAll
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,7 +18,7 @@ class WaffleListViewModel @Inject constructor(
     private val waffleRepository: WaffleRepository,
 ) : ViewModel() {
     val waffleListUiState = mutableStateOf(WaffleListUiState())
-    val idx: MutableState<Long?> = mutableStateOf(null)
+    private val idx: MutableState<Long?> = mutableStateOf(null)
 
     init {
         viewModelScope.launch {
@@ -38,8 +37,7 @@ class WaffleListViewModel @Inject constructor(
 
         if (responseResult != null && responseResult.isSuccessful) {
             if (isUpdate) {
-                waffleListUiState.value =
-                    waffleListUiState.value.copy(waffleList = responseResult.body()!!.list)
+                waffleListUiState.value = waffleListUiState.value.copy(waffleList = responseResult.body()!!.list)
             } else {
                 // TODO. 무한 스크롤 시연을 위해 아래 코드 주석 처리, 실제로는 MutableSet 사용 필요
 //                val newSet = waffleListUiState.value.waffleList.toMutableSet()
