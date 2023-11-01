@@ -77,7 +77,7 @@ fun WaffleNavHost(
         composable(route = Login.route) {
             LoginScreen(
                 navigateBack = {
-                    navController.popBackStack()
+                    navController.popBackStack(route = Home.route, inclusive = false)
                 },
                 navigateToWaffles = {
                     navController.navigate(Waffles.route) {
@@ -90,7 +90,7 @@ fun WaffleNavHost(
         // 회원가입 화면
         composable(route = Signup.route) {
             SignupScreen(
-                navigateBack = { navController.popBackStack() },
+                navigateBack = { navController.popBackStack(route = Home.route, inclusive = false) },
                 navigateToHome = { navController.navigate(Home.route) }
             )
         }
@@ -114,7 +114,7 @@ fun WaffleNavHost(
             arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType }),
         ) {
             WaffleScreen(
-                navigateBack = { navController.popBackStack() },
+                navigateBack = { navController.popBackStack(route = Waffles.route, inclusive = false) },
             )
         }
     }
