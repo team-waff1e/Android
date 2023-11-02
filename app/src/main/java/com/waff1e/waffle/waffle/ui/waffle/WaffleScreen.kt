@@ -1,6 +1,5 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,14 +18,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -72,9 +71,9 @@ fun WaffleScreen(
 @Composable
 fun WaffleBody(
     modifier: Modifier = Modifier,
-    waffleUiState: () -> State<WaffleUiState>
+    waffleUiState: () -> WaffleUiState
 ) {
-    val waffleUiState = waffleUiState()
+    val waffle = waffleUiState()
 
     Column(
         modifier = modifier
@@ -82,11 +81,11 @@ fun WaffleBody(
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        if (waffleUiState.value.waffle == null && waffleUiState.value.errorCode == null) {
+        if (waffle.waffle == null && waffle.errorCode == null) {
             LoadingWaffle()
-        } else if (waffleUiState.value.waffle != null) {
+        } else if (waffle.waffle != null) {
             WaffleCard(
-                item = waffleUiState.value.waffle!!,
+                item = waffle.waffle,
             )
         } else {
             // TODO. 응답 오류 처리 필요
@@ -122,7 +121,7 @@ fun WaffleCard(
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onBackground),
-                    painter = painterResource(id = R.drawable.person),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.person),
                     contentDescription = stringResource(id = R.string.profile_img),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
                 )
@@ -164,7 +163,7 @@ fun WaffleCard(
                     Icon(
                         modifier = Modifier
                             .size(20.dp),
-                        painter = painterResource(id = R.drawable.more_vert),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                         contentDescription = stringResource(id = R.string.waffle_option),
                         tint = MaterialTheme.colorScheme.onBackground
                     )
@@ -190,7 +189,7 @@ fun WaffleCard(
             Icon(
                 modifier = Modifier
                     .size(20.dp),
-                painter = painterResource(id = R.drawable.chat_bubble),
+                imageVector = ImageVector.vectorResource(id = R.drawable.chat_bubble),
                 contentDescription = stringResource(id = R.string.comments_cnt),
                 tint = MaterialTheme.colorScheme.onBackground
             )
@@ -207,7 +206,7 @@ fun WaffleCard(
             Icon(
                 modifier = Modifier
                     .size(20.dp),
-                painter = painterResource(id = R.drawable.favorite),
+                imageVector = ImageVector.vectorResource(id = R.drawable.favorite),
                 contentDescription = stringResource(id = R.string.likes_cnt),
                 tint = MaterialTheme.colorScheme.onBackground
             )
@@ -241,7 +240,7 @@ fun WaffleCardPreview(
     )
 
     WaffleListCard(
-        item = { waffleResponse },
+        item = waffleResponse,
         onItemClick = {}
     )
 }

@@ -30,10 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -49,7 +50,6 @@ import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.ui.theme.WaffleTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.reflect.KSuspendFunction0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -224,8 +224,7 @@ fun SignupTextField(
     var visualTransformation: VisualTransformation by remember {
         if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(
                 R.string.password_confirm
-            )
-        ) {
+            )) {
             mutableStateOf(PasswordVisualTransformation())
         } else {
             mutableStateOf(VisualTransformation.None)
@@ -291,10 +290,10 @@ fun SignupTextField(
                                         PasswordVisualTransformation()
                                     }
                             },
-                        painter = if (visualTransformation == PasswordVisualTransformation()) {
-                            painterResource(id = R.drawable.visibility)
+                        imageVector = if (visualTransformation == PasswordVisualTransformation()) {
+                            ImageVector.vectorResource(id = R.drawable.visibility)
                         } else {
-                            painterResource(id = R.drawable.visibility_off)
+                            ImageVector.vectorResource(id = R.drawable.visibility_off)
                         },
                         contentDescription = stringResource(id = R.string.password_visible_btn_description),
                         tint = MaterialTheme.colorScheme.onPrimary

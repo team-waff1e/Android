@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
@@ -30,10 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -215,10 +215,10 @@ fun LoginTextField(
                                 PasswordVisualTransformation()
                             }
                         },
-                        painter = if (visualTransformation == PasswordVisualTransformation()) {
-                            painterResource(id = R.drawable.visibility)
+                        imageVector = if (visualTransformation == PasswordVisualTransformation()) {
+                            ImageVector.vectorResource(id = R.drawable.visibility)
                         } else {
-                            painterResource(id = R.drawable.visibility_off)
+                            ImageVector.vectorResource(id = R.drawable.visibility_off)
                         },
                         contentDescription = stringResource(id = R.string.password_visible_btn_description),
                     )
