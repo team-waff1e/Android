@@ -25,6 +25,7 @@
     <string name="logout">로그아웃</string>
     <string name="bookmark">북마크</string>
     <string name="profile">프로필</string>
+    <string name="post_waffle_placeholder">무슨 일이 일어나고 있나요?</string>
 
     <!-- 기타 -->
     <string name="home_title_text">지금 세계에서 무슨 일이 일어나고 있는지 알아보세요</string>

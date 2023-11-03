@@ -47,7 +47,7 @@ fun PostWaffleScreen(
     navigateToWaffles: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val enableAction = remember { derivedStateOf { viewModel.content.isNotEmpty() } }
+    val enableAction = remember { derivedStateOf { viewModel.content.isNotBlank() } }
 
     Scaffold(
         topBar = {
@@ -124,7 +124,7 @@ fun PostWaffleTextField(
         onValueChange = { setContent(it) },
         placeholder = {
             Text(
-                text = "무슨 일이 일어나고 있나요?",
+                text = stringResource(id = R.string.post_waffle_placeholder),
                 style = Typography.displayMedium,
                 color = Color.Gray
             )
