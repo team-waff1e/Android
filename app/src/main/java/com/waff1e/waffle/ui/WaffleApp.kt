@@ -122,6 +122,7 @@ fun PostWaffleButton(
         enabled = enableAction,
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(
+            contentColor = Color.White,
             disabledContainerColor = MaterialTheme.colorScheme.inversePrimary,
             disabledContentColor = MaterialTheme.colorScheme.inverseOnSurface
         )
@@ -130,7 +131,7 @@ fun PostWaffleButton(
             modifier = modifier
                 .padding(horizontal = 15.dp, vertical = 5.dp),
             text = stringResource(id = R.string.post_waffle),
-            style = Typography.titleSmall
+            style = Typography.titleSmall,
         )
     }
 }
