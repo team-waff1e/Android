@@ -14,4 +14,6 @@ sealed class NavigationDestination(val route: String, val titleRes: Int) {
     object Waffle : NavigationDestination("waffle", R.string.waffle) {
         const val waffleArg = "waffle"
     }
+
+    object PostWaffle : NavigationDestination("postWaffle", R.string.post_waffle)
 }

@@ -28,6 +28,8 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = Color.White,
     onSurface = Color.White,
     error = Error,
+    inversePrimary = DisableWaffleBrown,
+    inverseOnSurface = DisableWhite
 )
 
 private val LightColorScheme = lightColorScheme(

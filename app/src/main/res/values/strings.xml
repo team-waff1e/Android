@@ -7,6 +7,7 @@
     <string name="signup">회원가입</string>
     <string name="waffles">Waffles</string>
     <string name="waffle">Waffle</string>
+    <string name="post_waffle">게시하기</string>
 
     <!-- 요소 관련 -->
     <string name="navigation_icon">네비게이션 아이콘</string>
@@ -38,4 +39,5 @@
 
     <!-- Description 관련 -->
     <string name="drawer_item_icon_desc">Drawer 아이템 아이콘</string>
+    <string name="fab_desc">플로팅 액션 버튼 아이콘</string>
 </resources>
