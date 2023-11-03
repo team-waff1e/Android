@@ -1,6 +1,8 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +21,7 @@ class WaffleViewModel @Inject constructor(
 ) : ViewModel() {
     private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleArg])
 
-    val waffleUiState = mutableStateOf(WaffleUiState())
+    var waffleUiState by mutableStateOf(WaffleUiState())
     init {
         viewModelScope.launch {
             getWaffle()
@@ -30,10 +32,10 @@ class WaffleViewModel @Inject constructor(
         val responseResult = waffleRepository.requestWaffle(waffleId)
 
         if (responseResult.isSuccessful) {
-            waffleUiState.value = waffleUiState.value.copy(waffle = responseResult.body())
+            waffleUiState = waffleUiState.copy(waffle = responseResult.body())
         } else {
             val body = Json.decodeFromString<DefaultResponse>(responseResult.errorBody()?.string()!!)
-            waffleUiState.value = waffleUiState.value.copy(errorCode = body.errorCode)
+            waffleUiState = waffleUiState.copy(errorCode = body.errorCode)
         }
     }
 }

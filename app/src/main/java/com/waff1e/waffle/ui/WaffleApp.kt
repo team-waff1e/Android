@@ -1,8 +1,6 @@
 package com.waff1e.waffle.ui
 
 import android.app.Activity
-import android.service.voice.VoiceInteractionSession.ActivityId
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -11,12 +9,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -26,15 +23,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
@@ -69,37 +66,27 @@ fun WaffleTopAppBar(
     imageVector: ImageVector = Icons.Filled.ArrowBack,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
-    if (hasNavigationIcon) {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = title,
-                    style = Typography.titleMedium
-                )
-            },
-            modifier = modifier,
-            navigationIcon = {
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = Typography.titleMedium
+            )
+        },
+        modifier = modifier,
+        navigationIcon = {
+            if (hasNavigationIcon) {
                 IconButton(onClick = navigationIconClicked) {
                     Icon(
                         imageVector = imageVector,
                         contentDescription = stringResource(R.string.navigation_icon)
                     )
                 }
-            },
-            scrollBehavior = scrollBehavior
-        )
-    } else {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = title,
-                    style = Typography.titleMedium
-                )
-            },
-            modifier = modifier,
-            scrollBehavior = scrollBehavior
-        )
-    }
+            }
+        },
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.background)
+    )
 }
 
 @Composable

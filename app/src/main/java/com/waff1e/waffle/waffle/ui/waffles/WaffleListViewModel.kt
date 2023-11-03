@@ -1,7 +1,9 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.waffle.data.WaffleRepository
@@ -17,7 +19,7 @@ import javax.inject.Inject
 class WaffleListViewModel @Inject constructor(
     private val waffleRepository: WaffleRepository,
 ) : ViewModel() {
-    val waffleListUiState = mutableStateOf(WaffleListUiState())
+    var waffleListUiState by mutableStateOf(WaffleListUiState())
     private val idx: MutableState<Long?> = mutableStateOf(null)
 
     init {
@@ -36,25 +38,25 @@ class WaffleListViewModel @Inject constructor(
         }
 
         if (responseResult != null && responseResult.isSuccessful) {
-            if (isUpdate) {
-                waffleListUiState.value = waffleListUiState.value.copy(waffleList = responseResult.body()!!.list)
+            waffleListUiState = if (isUpdate) {
+                waffleListUiState.copy(waffleList = responseResult.body()!!.list)
             } else {
                 // TODO. 무한 스크롤 시연을 위해 아래 코드 주석 처리, 실제로는 MutableSet 사용 필요
 //                val newSet = waffleListUiState.value.waffleList.toMutableSet()
 //                newSet.addAll(responseResult.body()!!.list)
 //                val newList = newSet.sortedByDescending { it.updatedAt }
-                val newList = waffleListUiState.value.waffleList.toMutableList()
+                val newList = waffleListUiState.waffleList.toMutableList()
                 newList.addAll(responseResult.body()!!.list)
                 newList.sortedByDescending { it.updatedAt }
-                waffleListUiState.value = waffleListUiState.value.copy(waffleList = newList)
+                waffleListUiState.copy(waffleList = newList)
             }
 
-            idx.value = waffleListUiState.value.waffleList.last().id
+            idx.value = waffleListUiState.waffleList.last().id
         } else if (responseResult != null) {
             val body = Json.decodeFromString<WaffleListFailResponse>(
                 responseResult.errorBody()?.string()!!
             )
-            waffleListUiState.value = waffleListUiState.value.copy(errorCode = body.errorCode)
+            waffleListUiState = waffleListUiState.copy(errorCode = body.errorCode)
         }
     }
 

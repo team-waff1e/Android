@@ -27,14 +27,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleDivider
-import com.waff1e.waffle.ui.home.LoginButton
 import com.waff1e.waffle.ui.home.SignupButton
 import com.waff1e.waffle.ui.theme.Typography
 
@@ -65,7 +64,7 @@ fun WaffleListDrawerSheet(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onBackground),
-                    painter = painterResource(id = R.drawable.person),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.person),
                     contentDescription = stringResource(id = R.string.profile_img),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
                 )
