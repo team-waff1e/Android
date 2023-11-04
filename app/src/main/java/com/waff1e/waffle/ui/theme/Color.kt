@@ -14,4 +14,9 @@ val WaffleBrown1 = Color(0xFFD9730D)
 val WaffleBrown2 = Color(0xFFF4993E)
 val WaffleBrown3 = Color(0xFFE8C14A)
 
+val DisableWaffleBrownDark = Color(0xFF6C3906)
+val DisableWhiteDark = Color(0xFF7F7F7F)
+val DisableWaffleBrownLight = Color(0xFFecb986)
+val DisableWhiteLight = Color(0xFFFFFFFF)
+
 val Error = Color(0xFFD32F2F)

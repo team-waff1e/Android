@@ -5,7 +5,6 @@ import kotlinx.datetime.serializers.LocalDateTimeIso8601Serializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class WaffleResponse(
     val id: Long,

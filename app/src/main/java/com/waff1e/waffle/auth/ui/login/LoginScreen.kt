@@ -61,7 +61,7 @@ fun LoginScreen(
     Scaffold(topBar = {
         WaffleTopAppBar(
             hasNavigationIcon = canNavigateBack,
-            navigationIconClicked = navigateBack
+            navigationIconClicked = navigateBack,
         )
     }) { innerPadding ->
         LoginBody(
@@ -78,7 +78,6 @@ fun LoginScreen(
                         navigateToWaffles()
                     } else {
                         // TODO. 로그인 실패 처리
-                        
                     }
                 }
             }
@@ -146,10 +145,10 @@ fun LoginBody(
         Box(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = onLoginBtnClicked,
-            enabled = loginUiState.canLogin,
             modifier = Modifier
                 .fillMaxWidth(),
+            onClick = onLoginBtnClicked,
+            enabled = loginUiState.canLogin,
             shape = ShapeDefaults.Medium,
         ) {
             Text(

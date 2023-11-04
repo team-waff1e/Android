@@ -1,35 +1,30 @@
 package com.waff1e.waffle.ui.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.EaseIn
-import androidx.compose.animation.core.EaseOut
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Transition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.waff1e.waffle.ui.home.HomeScreen
 import com.waff1e.waffle.auth.ui.login.LoginScreen
+import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.ui.home.HomeScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
+import com.waff1e.waffle.ui.navigation.NavigationDestination.PostWaffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
-import com.waff1e.waffle.auth.ui.signup.SignupScreen
-import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
-import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
+import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
+import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
+import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
+import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
+import com.waff1e.waffle.utils.WaffleAnimation.slideInUp
+import com.waff1e.waffle.utils.WaffleAnimation.slideOutDown
+import com.waff1e.waffle.utils.WaffleAnimation.slideOutRight
+import com.waff1e.waffle.waffle.ui.postwaffle.PostWaffleScreen
 import com.waff1e.waffle.waffle.ui.waffle.WaffleScreen
+import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
 
 @Composable
 fun WaffleNavHost(
@@ -40,30 +35,10 @@ fun WaffleNavHost(
         navController = navController,
         startDestination = Waffles.route,
         modifier = modifier,
-        enterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
-                animationSpec = tween(500)
-            )
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
-                animationSpec = tween(500)
-            )
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
-                animationSpec = tween(500)
-            )
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
-                animationSpec = tween(500)
-            )
-        }
+        enterTransition = fadeIn,
+        exitTransition = fadeOut,
+        popEnterTransition = fadeIn,
+        popExitTransition = fadeOut
     ) {
         // 메인화면
         composable(route = Home.route) {
@@ -74,7 +49,11 @@ fun WaffleNavHost(
         }
 
         // 로그인 화면
-        composable(route = Login.route) {
+        composable(
+            route = Login.route,
+            enterTransition = slideInLeft,
+            popExitTransition = slideOutRight
+        ) {
             LoginScreen(
                 navigateBack = {
                     navController.popBackStack(route = Home.route, inclusive = false)
@@ -88,9 +67,19 @@ fun WaffleNavHost(
         }
 
         // 회원가입 화면
-        composable(route = Signup.route) {
+        composable(
+            route = Signup.route,
+            enterTransition = slideInLeft,
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight
+        ) {
             SignupScreen(
-                navigateBack = { navController.popBackStack(route = Home.route, inclusive = false) },
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Home.route,
+                        inclusive = false
+                    )
+                },
                 navigateToHome = { navController.navigate(Home.route) }
             )
         }
@@ -104,17 +93,52 @@ fun WaffleNavHost(
                     navController.navigate(route = Home.route) {
                         popUpTo(Home.route) { inclusive = false }
                     }
+                },
+                navigateToPostWaffle = {
+                    navController.navigate(PostWaffle.route) {
+                        popUpTo(Waffles.route) { inclusive = false }
+                    }
                 }
             )
         }
 
-        // Waffle
+        // Waffle (단일 게시글 조회)
         composable(
             route = "${Waffle.route}/{${Waffle.waffleArg}}",
             arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType }),
+            enterTransition = slideInLeft,
+            popExitTransition = slideOutRight
         ) {
             WaffleScreen(
-                navigateBack = { navController.popBackStack(route = Waffles.route, inclusive = false) },
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
+            )
+        }
+
+        // PostWaffle (게시글 작성)
+        composable(
+            route = PostWaffle.route,
+            enterTransition = slideInUp,
+            exitTransition = slideOutDown,
+            popEnterTransition = slideInUp,
+            popExitTransition = slideOutDown
+        ) {
+            PostWaffleScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
+                navigateToWaffles = {
+                    navController.navigate(route = Waffles.route) {
+                        popUpTo(Home.route) { inclusive = false }
+                    }
+                }
             )
         }
     }

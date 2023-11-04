@@ -1,9 +1,11 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -49,7 +51,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +82,9 @@ import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.waffle.dto.WaffleResponse
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import java.time.LocalDateTime
@@ -96,7 +101,7 @@ fun WaffleListScreen(
     navigateToPostWaffle: () -> Unit,
     navigateToHome: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -107,13 +112,15 @@ fun WaffleListScreen(
 
     // FAB 관련
     var isFABVisible by remember { mutableStateOf(true) }
-    val isFABExpanded = remember { mutableStateOf(false) }
+    var isFABExpanded by remember { mutableStateOf(false) }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 if (available.y < -1) {
-                    isFABVisible = false
-                    isFABExpanded.value = false
+                    coroutineScope.launch {
+                        isFABVisible = false
+                        isFABExpanded = false
+                    }
                 }
                 if (available.y > 1)
                     isFABVisible = true
@@ -124,11 +131,11 @@ fun WaffleListScreen(
 
     BackHandler {
         if (drawerState.isOpen) {
-            scope.launch {
+            coroutineScope.launch {
                 drawerState.apply { close() }
             }
-        } else if (isFABExpanded.value) {
-            isFABExpanded.value = false
+        } else if (isFABExpanded) {
+            isFABExpanded = false
         } else if (System.currentTimeMillis() - backWait >= 2000) {
             backWait = System.currentTimeMillis()
             Toast.makeText(
@@ -158,7 +165,7 @@ fun WaffleListScreen(
                 WaffleTopAppBar(
                     hasNavigationIcon = true,
                     navigationIconClicked = {
-                        scope.launch {
+                        coroutineScope.launch {
                             drawerState.apply {
                                 if (isClosed) open() else close()
                             }
@@ -172,7 +179,9 @@ fun WaffleListScreen(
             floatingActionButton = {
                 WaffleListFAB(
                     isFABVisible = { isFABVisible },
-                    isFABExpanded = isFABExpanded
+                    isFABExpanded = { isFABExpanded },
+                    changeFabExpandedState = { isFABExpanded = true },
+                    navigateToPostWaffle = navigateToPostWaffle
                 )
             }
         ) { innerPadding ->
@@ -182,7 +191,7 @@ fun WaffleListScreen(
                 onWaffleClick = navigateToWaffle,
                 waffleListUiState = { viewModel.waffleListUiState },
                 getWaffleList = viewModel::getWaffleList,
-                nestedScrollConnection = nestedScrollConnection
+                nestedScrollConnection = nestedScrollConnection,
             )
         }
     }
@@ -245,6 +254,8 @@ fun WafflesLazyColumn(
             getWaffleList(false)
             isLoading = false
         }
+    } else if (isLoading) { // 스크롤 하다가 갑자기 올리면 CircularProgressIndicator 사라지지 않는 문제 대응
+        isLoading = false
     }
 
     Box(
@@ -478,35 +489,41 @@ fun LoadingWaffle(
 fun WaffleListFAB(
     modifier: Modifier = Modifier,
     isFABVisible: () -> Boolean,
-    isFABExpanded: MutableState<Boolean>,
+    isFABExpanded: () -> Boolean,
+    changeFabExpandedState: () -> Unit,
+    navigateToPostWaffle: () -> Unit,
 ) {
+    val durationMillis = 500
+
     AnimatedVisibility(
         visible = isFABVisible(),
 //        enter = slideInVertically(initialOffsetY = { it * 2 }),
 //        exit = slideOutVertically(targetOffsetY = { it * 2 }),
-        enter = scaleIn() + fadeIn() + slideInHorizontally(initialOffsetX = { -it / 2 }),
-        exit = scaleOut() + fadeOut() + slideOutHorizontally(targetOffsetX = { -it / 2 }),
+        enter = scaleIn(tween(durationMillis = durationMillis)) + fadeIn(tween(durationMillis = durationMillis)) + slideInHorizontally(
+            tween(durationMillis = durationMillis), initialOffsetX = { -it / 2 }),
+        exit = scaleOut(tween(durationMillis = durationMillis)) + fadeOut(tween(durationMillis = durationMillis)) + slideOutHorizontally(
+            tween(durationMillis = durationMillis), targetOffsetX = { -it / 2 }),
     ) {
         ExtendedFloatingActionButton(
             modifier = modifier,
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Add,
-                    contentDescription = "플로팅 액션 버튼 아이콘"
+                    contentDescription = stringResource(id = R.string.fab_desc)
                 )
             },
             text = {
                 Text(
-                    text = "게시하기",
+                    text = stringResource(id = R.string.post_waffle),
                     style = Typography.bodyLarge
                 )
             },
-            expanded = isFABExpanded.value,
+            expanded = isFABExpanded(),
             onClick = {
-                if (!isFABExpanded.value) {
-                    isFABExpanded.value = true
+                if (!isFABExpanded()) {
+                    changeFabExpandedState()
                 } else {
-
+                    navigateToPostWaffle()
                 }
             },
             shape = CircleShape,
@@ -523,7 +540,7 @@ fun WafflesPreview() {
         navigateToWaffle = { },
         navigateToProfile = { },
         navigateToHome = { },
-        navigateToPostWaffle = {  },
+        navigateToPostWaffle = { },
     )
 }
 
