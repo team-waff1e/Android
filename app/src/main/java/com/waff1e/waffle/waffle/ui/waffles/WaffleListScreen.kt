@@ -276,7 +276,7 @@ fun WafflesLazyColumn(
                     items = list,
                     key = { _, item ->
                         item.id
-                    }
+                    },
                 ) { _, item ->
                     WaffleListCard(
                         item = item,
