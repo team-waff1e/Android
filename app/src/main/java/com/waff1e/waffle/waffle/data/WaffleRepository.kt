@@ -3,6 +3,7 @@ package com.waff1e.waffle.waffle.data
 import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.waffle.dto.PostWaffleRequest
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
+import com.waff1e.waffle.waffle.dto.Waffle
 import com.waff1e.waffle.waffle.dto.WaffleResponse
 import com.waff1e.waffle.waffle.network.WaffleService
 import retrofit2.Response

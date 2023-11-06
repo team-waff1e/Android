@@ -4,6 +4,9 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.waff1e.waffle.auth.data.DefaultAuthRepository
 import com.waff1e.waffle.auth.data.AuthRepository
 import com.waff1e.waffle.auth.network.AuthService
+import com.waff1e.waffle.member.data.DefaultMemberRepository
+import com.waff1e.waffle.member.data.MemberRepository
+import com.waff1e.waffle.member.network.MemberService
 import com.waff1e.waffle.waffle.data.DefaultWaffleRepository
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import com.waff1e.waffle.waffle.network.WaffleService
@@ -17,6 +20,8 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
+import retrofit2.create
+import java.lang.reflect.Member
 import java.lang.reflect.Type
 import javax.inject.Singleton
 
@@ -82,5 +87,17 @@ object AppModule {
     @Provides
     fun provideWafflesRepository(waffleService: WaffleService): WaffleRepository {
         return DefaultWaffleRepository(waffleService)
+    }
+
+    @Singleton
+    @Provides
+    fun provideMemberService(retrofit: Retrofit): MemberService {
+        return retrofit.create(MemberService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideMemberRepository(memberService: MemberService): MemberRepository {
+        return DefaultMemberRepository(memberService)
     }
 }

@@ -43,6 +43,7 @@ import com.waff1e.waffle.ui.theme.Typography
 fun WaffleListDrawerSheet(
     modifier: Modifier = Modifier,
     onLogoutClicked: () -> Unit,
+    onProfileClicked: () -> Unit,
 ) {
     ModalDrawerSheet(
         modifier = modifier
@@ -95,7 +96,8 @@ fun WaffleListDrawerSheet(
             Column {
                 DrawerListItem(
                     imageVector = Icons.Filled.Person,
-                    text = stringResource(id = R.string.profile)
+                    text = stringResource(id = R.string.profile),
+                    onClicked = onProfileClicked
                 )
 
                 DrawerListItem(
@@ -124,11 +126,18 @@ fun DrawerListItem(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
     text: String,
+    onClicked: () -> Unit = {  },
 ) {
+    val profileText = stringResource(id = R.string.profile)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { }
+            .clickable {
+                when (text) {
+                    profileText -> onClicked()
+                }
+            }
             .padding(vertical = 15.dp),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalAlignment = Alignment.CenterVertically,

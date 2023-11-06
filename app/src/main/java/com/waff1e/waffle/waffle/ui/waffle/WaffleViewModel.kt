@@ -20,8 +20,8 @@ class WaffleViewModel @Inject constructor(
     private val waffleRepository: WaffleRepository
 ) : ViewModel() {
     private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleArg])
-
     var waffleUiState by mutableStateOf(WaffleUiState())
+
     init {
         viewModelScope.launch {
             getWaffle()
@@ -31,11 +31,14 @@ class WaffleViewModel @Inject constructor(
     private suspend fun getWaffle() {
         val responseResult = waffleRepository.requestWaffle(waffleId)
 
-        if (responseResult.isSuccessful) {
-            waffleUiState = waffleUiState.copy(waffle = responseResult.body())
+        waffleUiState = if (responseResult.isSuccessful) {
+            waffleUiState.copy(
+                waffle = responseResult.body()!!.waffle,
+                commentList = responseResult.body()!!.commentList
+            )
         } else {
             val body = Json.decodeFromString<DefaultResponse>(responseResult.errorBody()?.string()!!)
-            waffleUiState = waffleUiState.copy(errorCode = body.errorCode)
+            waffleUiState.copy(errorCode = body.errorCode)
         }
     }
 }

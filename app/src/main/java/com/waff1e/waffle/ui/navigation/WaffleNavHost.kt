@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.member.ui.profile.ProfileScreen
 import com.waff1e.waffle.ui.home.HomeScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
@@ -16,6 +17,7 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.PostWaffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
+import com.waff1e.waffle.ui.navigation.NavigationDestination.Profile
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
@@ -88,7 +90,11 @@ fun WaffleNavHost(
         composable(route = Waffles.route) {
             WaffleListScreen(
                 navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
-                navigateToProfile = { navController.navigate(route = "") },
+                navigateToProfile = {
+                    navController.navigate(route = Profile.route) {
+                        popUpTo(Waffles.route) { inclusive = false }
+                    }
+                },
                 navigateToHome = {
                     navController.navigate(route = Home.route) {
                         popUpTo(Home.route) { inclusive = false }
@@ -139,6 +145,22 @@ fun WaffleNavHost(
                         popUpTo(Home.route) { inclusive = false }
                     }
                 }
+            )
+        }
+
+        // 프로필
+        composable(
+            route = Profile.route,
+            enterTransition = slideInLeft,
+            popExitTransition = slideOutRight
+        ) {
+            ProfileScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
             )
         }
     }

@@ -31,11 +31,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
-import com.waff1e.waffle.waffle.dto.Member
-import com.waff1e.waffle.waffle.dto.WaffleResponse
+import com.waff1e.waffle.waffle.dto.Waffle
 import com.waff1e.waffle.waffle.ui.waffles.LoadingWaffle
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListCard
 import kotlinx.datetime.toJavaLocalDateTime
@@ -99,7 +99,7 @@ fun WaffleBody(
 @Composable
 fun WaffleCard(
     modifier: Modifier = Modifier,
-    item: WaffleResponse,
+    item: Waffle,
 ) {
     Card(
         modifier = modifier
@@ -136,7 +136,7 @@ fun WaffleCard(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            text = item.member.nickname,
+                            text = item.member.nickname!!,
                             style = Typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -226,7 +226,7 @@ fun WaffleCard(
 fun WaffleCardPreview(
     modifier: Modifier = Modifier,
 ) {
-    val waffleResponse = WaffleResponse(
+    val waffle = Waffle(
         id = 1,
         content = "내용입니다1",
         createdAt = LocalDateTime.now().toKotlinLocalDateTime(),
@@ -235,12 +235,13 @@ fun WaffleCardPreview(
         comments = 100,
         member = Member(
             nickname = "테스트 유저1",
-            profileUrl = "프로필 URL1"
-        )
+            profileUrl = "프로필 URL1",
+        ),
+        isLike = false,
     )
 
     WaffleListCard(
-        item = waffleResponse,
+        item = waffle,
         onItemClick = {}
     )
 }
