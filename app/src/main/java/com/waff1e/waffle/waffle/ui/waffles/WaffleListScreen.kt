@@ -1,7 +1,6 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -51,7 +50,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,10 +79,7 @@ import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
-import com.waff1e.waffle.waffle.dto.WaffleResponse
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
+import com.waff1e.waffle.waffle.dto.Waffle
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import java.time.LocalDateTime
@@ -152,7 +147,8 @@ fun WaffleListScreen(
         drawerState = drawerState,
         drawerContent = {
             WaffleListDrawerSheet(
-                onLogoutClicked = navigateToHome
+                onLogoutClicked = navigateToHome,
+                onProfileClicked = navigateToProfile
             )
         },
         scrimColor = Color.Black.copy(alpha = 0.7f)
@@ -219,8 +215,8 @@ fun WafflesBody(
 @Composable
 fun WafflesLazyColumn(
     modifier: Modifier = Modifier,
-    onWaffleClick: (WaffleResponse) -> Unit,
-    list: List<WaffleResponse>,
+    onWaffleClick: (Waffle) -> Unit,
+    list: List<Waffle>,
     getWaffleList: suspend (Boolean) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
 ) {
@@ -314,8 +310,8 @@ fun WafflesLazyColumn(
 @Composable
 fun WaffleListCard(
     modifier: Modifier = Modifier,
-    item: WaffleResponse,
-    onItemClick: (WaffleResponse) -> Unit,
+    item: Waffle,
+    onItemClick: (Waffle) -> Unit,
 ) {
     Card(
         modifier = modifier
@@ -354,7 +350,7 @@ fun WaffleListCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = item.member.nickname,
+                            text = item.member.nickname!!,
                             style = Typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )

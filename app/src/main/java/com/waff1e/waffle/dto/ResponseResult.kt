@@ -1,8 +1,5 @@
 package com.waff1e.waffle.dto
 
-import android.util.Log
-import com.waff1e.waffle.waffle.dto.WaffleResponse
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import retrofit2.Response
 

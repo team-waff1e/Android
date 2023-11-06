@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class WaffleListSuccessResponse(
-    val list: List<WaffleResponse> = listOf(),
+    val list: List<Waffle> = listOf(),
 )
 
 @Serializable
