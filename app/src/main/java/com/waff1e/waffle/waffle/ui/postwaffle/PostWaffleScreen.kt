@@ -17,11 +17,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -34,8 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.TopAppbarType
 import kotlinx.coroutines.launch
-import kotlin.reflect.KFunction1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,8 +52,8 @@ fun PostWaffleScreen(
                 hasNavigationIcon = canNavigationBack,
                 navigationIconClicked = navigateBack,
                 title = "",
-                imageVector = Icons.Filled.Close,
-                hasAction = true,
+                navigationIcon = Icons.Filled.Close,
+                type = TopAppbarType.PostWaffle,
                 enableAction = enableAction.value,
                 onAction = {
                     coroutineScope.launch {

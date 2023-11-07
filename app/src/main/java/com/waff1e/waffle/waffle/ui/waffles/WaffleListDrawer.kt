@@ -36,6 +36,7 @@ import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.home.SignupButton
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.clickableSingle
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -133,7 +134,7 @@ fun DrawerListItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable {
+            .clickableSingle {
                 when (text) {
                     profileText -> onClicked()
                 }

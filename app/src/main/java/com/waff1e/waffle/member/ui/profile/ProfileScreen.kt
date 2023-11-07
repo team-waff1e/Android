@@ -4,11 +4,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +49,7 @@ import com.waff1e.waffle.R
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TabItem
+import com.waff1e.waffle.utils.TopAppbarType
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
 import com.waff1e.waffle.waffle.ui.waffles.WafflesLazyColumn
@@ -96,7 +99,12 @@ fun ProfileScreen(
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,
                 navigationIconClicked = navigateBack,
-                title = ""
+                title = "",
+                type = TopAppbarType.Profile,
+                onAction = {
+                    // TODO. 프로필 수정 페이지로 이동
+                },
+                actionIcon = Icons.Filled.Settings
             )
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -131,11 +139,13 @@ fun ProfileBody(
 ) {
     Column(
         modifier = modifier
-            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
+            .fillMaxSize()
+            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 modifier = Modifier
@@ -147,10 +157,20 @@ fun ProfileBody(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
             )
 
-            Text(
-                text = myProfile().member?.nickname ?: "",
-                style = Typography.titleSmall
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = myProfile().member?.nickname ?: "",
+                    style = Typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "게시물 ${myWaffleListUiState().waffleList.size}개",
+                    style = Typography.bodyMedium
+                )
+            }
         }
 
         ProfileTab(
@@ -161,6 +181,7 @@ fun ProfileBody(
         )
     }
 }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProfileTab(

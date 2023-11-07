@@ -1,5 +1,6 @@
 package com.waff1e.waffle.ui.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,10 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.ui.BackHandlerEndToast
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.ui.theme.WaffleTheme
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,12 +102,28 @@ fun HomeBody(
 fun SignupButton(
     modifier: Modifier = Modifier,
     onClicked: () -> Unit,
-    text: String
+    text: String,
 ) {
+    var defenderDoubleClick by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = defenderDoubleClick) {
+        if (defenderDoubleClick) return@LaunchedEffect
+        else delay(DOUBLE_CLICK_DELAY)
+
+        defenderDoubleClick = true
+    }
+
     Button(
         modifier = modifier
             .fillMaxWidth(),
-        onClick = onClicked
+        onClick = {
+            if (defenderDoubleClick) {
+                defenderDoubleClick = false
+                onClicked()
+            }
+        },
     ) {
         Text(
             modifier = modifier
@@ -115,12 +139,28 @@ fun SignupButton(
 fun LoginButton(
     modifier: Modifier = Modifier,
     onClicked: () -> Unit,
-    text: String
+    text: String,
 ) {
+    var defenderDoubleClick by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = defenderDoubleClick) {
+        if (defenderDoubleClick) return@LaunchedEffect
+        else delay(DOUBLE_CLICK_DELAY)
+
+        defenderDoubleClick = true
+    }
+
     OutlinedButton(
         modifier = modifier
             .fillMaxWidth(),
-        onClick = onClicked,
+        onClick = {
+            if (defenderDoubleClick) {
+                defenderDoubleClick = false
+                onClicked()
+            }
+        },
         border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
     ) {
         Text(
