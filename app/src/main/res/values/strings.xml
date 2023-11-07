@@ -12,6 +12,7 @@
 
     <!-- 요소 관련 -->
     <string name="navigation_icon">네비게이션 아이콘</string>
+    <string name="action_icon">액션 아이콘</string>
     <string name="email">이메일</string>
     <string name="password">비밀번호</string>
     <string name="password_confirm">비밀번호 확인</string>

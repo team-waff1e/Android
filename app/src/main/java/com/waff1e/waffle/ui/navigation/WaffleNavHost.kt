@@ -45,8 +45,16 @@ fun WaffleNavHost(
         // 메인화면
         composable(route = Home.route) {
             HomeScreen(
-                navigateToLogin = { navController.navigate(Login.route) },
-                navigateToSignup = { navController.navigate(Signup.route) }
+                navigateToLogin = {
+                    navController.navigate(Login.route) {
+                        launchSingleTop = true
+                    }
+                },
+                navigateToSignup = {
+                    navController.navigate(Signup.route) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 
@@ -89,20 +97,26 @@ fun WaffleNavHost(
         // Waffles(리스트) 화면
         composable(route = Waffles.route) {
             WaffleListScreen(
-                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
+                navigateToWaffle = {
+                    navController.navigate(route = "${Waffle.route}/${it}") {
+                        launchSingleTop = true
+                    }
+                },
                 navigateToProfile = {
                     navController.navigate(route = Profile.route) {
+                        launchSingleTop = true
                         popUpTo(Waffles.route) { inclusive = false }
                     }
                 },
                 navigateToHome = {
                     navController.navigate(route = Home.route) {
+                        launchSingleTop = true
                         popUpTo(Home.route) { inclusive = false }
                     }
                 },
                 navigateToPostWaffle = {
                     navController.navigate(PostWaffle.route) {
-                        popUpTo(Waffles.route) { inclusive = false }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -134,12 +148,7 @@ fun WaffleNavHost(
             popExitTransition = slideOutDown
         ) {
             PostWaffleScreen(
-                navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
-                },
+                navigateBack = { navController.popBackStack() },
                 navigateToWaffles = {
                     navController.navigate(route = Waffles.route) {
                         popUpTo(Home.route) { inclusive = false }
@@ -166,9 +175,9 @@ fun WaffleNavHost(
                 navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
                 navigateToPostWaffle = {
                     navController.navigate(PostWaffle.route) {
-                        popUpTo(Waffles.route) { inclusive = false }
+                        launchSingleTop = true
                     }
-                }
+                },
             )
         }
     }

@@ -26,6 +26,7 @@ import java.lang.reflect.Type
 import javax.inject.Singleton
 
 const val LIMIT = 20
+const val DOUBLE_CLICK_DELAY = 1000L
 
 @Module
 @InstallIn(SingletonComponent::class)

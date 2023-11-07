@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Error
 import com.waff1e.waffle.ui.theme.Typography
@@ -108,6 +109,17 @@ fun SignupBody(
 
     BackHandler {
         if (isFocused) focusManager.clearFocus() else navigateBack()
+    }
+
+    var defenderDoubleClick by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = defenderDoubleClick) {
+        if (defenderDoubleClick) return@LaunchedEffect
+        else delay(DOUBLE_CLICK_DELAY)
+
+        defenderDoubleClick = true
     }
 
     Column(
@@ -190,7 +202,12 @@ fun SignupBody(
         Box(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = onSignupBtnClicked,
+            onClick = {
+                if (defenderDoubleClick) {
+                    defenderDoubleClick = false
+                    onSignupBtnClicked()
+                }
+            },
             enabled = signupUiState.canSignup,
             modifier = Modifier
                 .fillMaxWidth(),

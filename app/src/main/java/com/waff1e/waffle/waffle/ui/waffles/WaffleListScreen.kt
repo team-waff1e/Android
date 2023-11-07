@@ -79,6 +79,7 @@ import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.clickableSingle
 import com.waff1e.waffle.waffle.dto.Waffle
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
@@ -148,7 +149,12 @@ fun WaffleListScreen(
         drawerContent = {
             WaffleListDrawerSheet(
                 onLogoutClicked = navigateToHome,
-                onProfileClicked = navigateToProfile
+                onProfileClicked = {
+                    coroutineScope.launch {
+                        navigateToProfile()
+                        drawerState.apply { close() }
+                    }
+                }
             )
         },
         scrimColor = Color.Black.copy(alpha = 0.7f)
@@ -167,7 +173,7 @@ fun WaffleListScreen(
                             }
                         }
                     },
-                    imageVector = Icons.Filled.AccountCircle,
+                    navigationIcon = Icons.Filled.AccountCircle,
                     scrollBehavior = scrollBehavior
                 )
             },
@@ -316,7 +322,7 @@ fun WaffleListCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onItemClick(item) },
+            .clickableSingle { onItemClick(item) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Row(
@@ -493,8 +499,6 @@ fun WaffleListFAB(
 
     AnimatedVisibility(
         visible = isFABVisible(),
-//        enter = slideInVertically(initialOffsetY = { it * 2 }),
-//        exit = slideOutVertically(targetOffsetY = { it * 2 }),
         enter = scaleIn(tween(durationMillis = durationMillis)) + fadeIn(tween(durationMillis = durationMillis)) + slideInHorizontally(
             tween(durationMillis = durationMillis), initialOffsetX = { -it / 2 }),
         exit = scaleOut(tween(durationMillis = durationMillis)) + fadeOut(tween(durationMillis = durationMillis)) + slideOutHorizontally(

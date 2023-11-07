@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,8 +44,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,6 +105,17 @@ fun LoginBody(
         if (isFocused) focusManager.clearFocus() else navigateBack()
     }
 
+    var defenderDoubleClick by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = defenderDoubleClick) {
+        if (defenderDoubleClick) return@LaunchedEffect
+        else delay(DOUBLE_CLICK_DELAY)
+
+        defenderDoubleClick = true
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -147,7 +161,12 @@ fun LoginBody(
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
-            onClick = onLoginBtnClicked,
+            onClick = {
+                if (defenderDoubleClick) {
+                    defenderDoubleClick = false
+                    onLoginBtnClicked()
+                }
+            },
             enabled = loginUiState.canLogin,
             shape = ShapeDefaults.Medium,
         ) {

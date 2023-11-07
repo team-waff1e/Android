@@ -9,18 +9,16 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -30,17 +28,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -55,12 +52,25 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.ui.navigation.WaffleNavHost
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.TopAppbarType
+import kotlinx.coroutines.delay
 
 @Composable
 fun WaffleApp(navController: NavHostController = rememberNavController()) {
     WaffleNavHost(navController)
+}
+
+@Composable
+fun WaffleTopAppBarTitleText(
+    title: String
+) {
+    Text(
+        text = title,
+        style = Typography.titleMedium
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,9 +80,10 @@ fun WaffleTopAppBar(
     title: String = stringResource(id = R.string.app_name),
     hasNavigationIcon: Boolean,
     navigationIconClicked: () -> Unit = { },
-    imageVector: ImageVector = Icons.Filled.ArrowBack,
+    navigationIcon: ImageVector = Icons.Filled.ArrowBack,
+    actionIcon: ImageVector = Icons.Filled.Settings,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    hasAction: Boolean = false,
+    type: TopAppbarType = TopAppbarType.Default,
     onAction: () -> Unit = { },
     enableAction: Boolean = false,
 ) {
@@ -88,19 +99,32 @@ fun WaffleTopAppBar(
             if (hasNavigationIcon) {
                 IconButton(onClick = navigationIconClicked) {
                     Icon(
-                        imageVector = imageVector,
-                        contentDescription = stringResource(R.string.navigation_icon)
+                        imageVector = navigationIcon,
+                        contentDescription = stringResource(R.string.navigation_icon),
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
         },
         actions = {
-            if (hasAction) {
-                PostWaffleButton(
-                    modifier = modifier,
-                    onAction = onAction,
-                    enableAction = enableAction
-                )
+            when (type) {
+                TopAppbarType.PostWaffle -> {
+                    PostWaffleButton(
+                        modifier = modifier,
+                        onAction = onAction,
+                        enableAction = enableAction
+                    )
+                }
+                TopAppbarType.Profile -> {
+                    IconButton(onClick = onAction) {
+                        Icon(
+                            imageVector = actionIcon,
+                            contentDescription = stringResource(R.string.action_icon),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+                TopAppbarType.Default -> Unit
             }
         },
         scrollBehavior = scrollBehavior,
@@ -114,12 +138,26 @@ fun PostWaffleButton(
     onAction: () -> Unit,
     enableAction: Boolean,
 ) {
+    var defenderDoubleClick by remember {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(key1 = defenderDoubleClick) {
+        if (defenderDoubleClick) return@LaunchedEffect
+        else delay(DOUBLE_CLICK_DELAY)
+
+        defenderDoubleClick = true
+    }
+
     Button(
         modifier = modifier
             .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
             .padding(horizontal = 10.dp),
-        onClick = { onAction() },
-        enabled = enableAction,
+        onClick = {
+            defenderDoubleClick = false
+            onAction()
+        },
+        enabled = defenderDoubleClick,
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(
             contentColor = Color.White,
