@@ -18,4 +18,6 @@ sealed class NavigationDestination(val route: String, val titleRes: Int) {
     object PostWaffle : NavigationDestination("postWaffle", R.string.post_waffle)
 
     object Profile : NavigationDestination("profile", R.string.profile)
+
+    object EditProfile : NavigationDestination("edit_profile", R.string.edit_profile)
 }

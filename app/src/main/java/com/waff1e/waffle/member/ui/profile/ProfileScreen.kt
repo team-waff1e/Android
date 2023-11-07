@@ -66,6 +66,7 @@ fun ProfileScreen(
     canNavigationBack: Boolean = true,
     navigateToWaffle: (Long) -> Unit,
     navigateToPostWaffle: () -> Unit,
+    navigateToEditProfile: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isFABVisible by remember { mutableStateOf(true) }
@@ -101,9 +102,7 @@ fun ProfileScreen(
                 navigationIconClicked = navigateBack,
                 title = "",
                 type = TopAppbarType.Profile,
-                onAction = {
-                    // TODO. 프로필 수정 페이지로 이동
-                },
+                onAction = { navigateToEditProfile() },
                 actionIcon = Icons.Filled.Settings
             )
         },
