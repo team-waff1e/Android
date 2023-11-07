@@ -25,6 +25,8 @@ import java.lang.reflect.Member
 import java.lang.reflect.Type
 import javax.inject.Singleton
 
+const val LIMIT = 20
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {

@@ -152,7 +152,9 @@ fun WaffleNavHost(
         composable(
             route = Profile.route,
             enterTransition = slideInLeft,
-            popExitTransition = slideOutRight
+            popExitTransition = slideOutRight,
+            popEnterTransition = fadeIn,
+            exitTransition = slideOutRight
         ) {
             ProfileScreen(
                 navigateBack = {
@@ -161,6 +163,12 @@ fun WaffleNavHost(
                         inclusive = false
                     )
                 },
+                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
+                navigateToPostWaffle = {
+                    navController.navigate(PostWaffle.route) {
+                        popUpTo(Waffles.route) { inclusive = false }
+                    }
+                }
             )
         }
     }

@@ -1,23 +1,25 @@
 package com.waff1e.waffle.member.ui.profile
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.waff1e.waffle.dto.ResponseResult
+import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.member.data.MemberRepository
 import com.waff1e.waffle.member.dto.Member
-import com.waff1e.waffle.member.dto.UpdateProfileRequest
+import com.waff1e.waffle.waffle.data.WaffleRepository
 import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
+import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
+import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
+import com.waff1e.waffle.waffle.ui.waffles.WaffleListViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.io.File
@@ -25,14 +27,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val memberRepository: MemberRepository
+    private val memberRepository: MemberRepository,
+    private val waffleRepository: WaffleRepository
 ) : ViewModel() {
     var myProfile by mutableStateOf(ProfileUiState())
-
+    var myWaffleListUiState by mutableStateOf(WaffleListUiState())
+    private val idx: MutableState<Long?> = mutableStateOf(null)
 
     init {
         viewModelScope.launch {
             getMyProfile()
+            getMyWaffleList(true)
         }
     }
 
@@ -48,10 +53,40 @@ class ProfileViewModel @Inject constructor(
 
             myProfile.copy(errorCode = body.errorCode)
         }
-
-        Log.d("로그", "ProfileViewModel - getMyProfile() 호출됨 - ${myProfile.member}")
     }
-    
+
+    suspend fun getMyWaffleList(isUpdate: Boolean) {
+        val responseResult: Response<WaffleListSuccessResponse>? = if (isUpdate) {
+            waffleRepository.requestWaffleList(LIMIT, true, null)
+        } else if (idx.value != null) {
+            waffleRepository.requestWaffleList(LIMIT, false, idx.value)
+        } else {
+            null
+        }
+
+        if (responseResult != null && responseResult.isSuccessful) {
+            myWaffleListUiState = if (isUpdate) {
+                myWaffleListUiState.copy(waffleList = responseResult.body()!!.list)
+            } else {
+                // TODO. 무한 스크롤 시연을 위해 아래 코드 주석 처리, 실제로는 MutableSet 사용 필요
+//                val newSet = waffleListUiState.value.waffleList.toMutableSet()
+//                newSet.addAll(responseResult.body()!!.list)
+//                val newList = newSet.sortedByDescending { it.updatedAt }
+                val newList = myWaffleListUiState.waffleList.toMutableList()
+                newList.addAll(responseResult.body()!!.list)
+                newList.sortedByDescending { it.updatedAt }
+                myWaffleListUiState.copy(waffleList = newList)
+            }
+
+            idx.value = myWaffleListUiState.waffleList.last().id
+        } else if (responseResult != null) {
+            val body = Json.decodeFromString<WaffleListFailResponse>(
+                responseResult.errorBody()?.string()!!
+            )
+            myWaffleListUiState = myWaffleListUiState.copy(errorCode = body.errorCode)
+        }
+    }
+
     // TODO. 프로필 이미지 업데이트 기능 수정 필요
     suspend fun updateMyProfileImage() {
         val file = File("1234")
