@@ -154,10 +154,12 @@ fun PostWaffleButton(
             .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
             .padding(horizontal = 10.dp),
         onClick = {
-            defenderDoubleClick = false
-            onAction()
+            if (defenderDoubleClick) {
+                defenderDoubleClick = false
+                onAction()
+            }
         },
-        enabled = defenderDoubleClick,
+        enabled = enableAction,
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(
             contentColor = Color.White,
