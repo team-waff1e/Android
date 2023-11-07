@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
@@ -58,9 +59,5 @@ class WaffleListViewModel @Inject constructor(
             )
             waffleListUiState = waffleListUiState.copy(errorCode = body.errorCode)
         }
-    }
-
-    companion object {
-        const val LIMIT = 20
     }
 }

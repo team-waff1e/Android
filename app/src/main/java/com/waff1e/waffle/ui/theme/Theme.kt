@@ -25,7 +25,8 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color.White,
     error = Error,
     inversePrimary = DisableWaffleBrownDark,
-    inverseOnSurface = DisableWhiteDark
+    inverseOnSurface = DisableWhiteDark,
+    inverseSurface = DisableWhiteDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -41,7 +42,8 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color.Black,
     error = Error,
     inversePrimary = DisableWaffleBrownLight,
-    inverseOnSurface = DisableWhiteLight
+    inverseOnSurface = DisableWhiteLight,
+    inverseSurface = DisableWhiteDark
 )
 
 @Composable

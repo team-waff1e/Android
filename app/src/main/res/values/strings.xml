@@ -41,4 +41,10 @@
     <!-- Description 관련 -->
     <string name="drawer_item_icon_desc">Drawer 아이템 아이콘</string>
     <string name="fab_desc">플로팅 액션 버튼 아이콘</string>
+
+    <!-- TabItem Type 관련 -->
+    <string name="tab_item_type_waffle">게시글</string>
+    <string name="tab_item_type_comment">답글</string>
+    <string name="tab_item_type_media">미디어</string>
+    <string name="tab_item_type_like">좋아요</string>
 </resources>
