@@ -9,6 +9,7 @@
     <string name="waffle">Waffle</string>
     <string name="post_waffle">게시하기</string>
     <string name="profile">프로필</string>
+    <string name="edit_profile">내 계정</string>
 
     <!-- 요소 관련 -->
     <string name="navigation_icon">네비게이션 아이콘</string>
@@ -42,6 +43,7 @@
     <!-- Description 관련 -->
     <string name="drawer_item_icon_desc">Drawer 아이템 아이콘</string>
     <string name="fab_desc">플로팅 액션 버튼 아이콘</string>
+    <string name="edit_profile_item_icon">프로필 수정 아이템 아이콘</string>
 
     <!-- TabItem Type 관련 -->
     <string name="tab_item_type_waffle">게시글</string>

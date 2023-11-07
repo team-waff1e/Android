@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.member.ui.edit_profile.EditProfileScreen
 import com.waff1e.waffle.member.ui.profile.ProfileScreen
 import com.waff1e.waffle.ui.home.HomeScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
@@ -18,6 +19,7 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Profile
+import com.waff1e.waffle.ui.navigation.NavigationDestination.EditProfile
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
@@ -161,9 +163,9 @@ fun WaffleNavHost(
         composable(
             route = Profile.route,
             enterTransition = slideInLeft,
-            popExitTransition = slideOutRight,
             popEnterTransition = fadeIn,
-            exitTransition = slideOutRight
+            exitTransition = fadeOut,
+            popExitTransition = slideOutRight,
         ) {
             ProfileScreen(
                 navigateBack = {
@@ -178,6 +180,29 @@ fun WaffleNavHost(
                         launchSingleTop = true
                     }
                 },
+                navigateToEditProfile = {
+                    navController.navigate(route = EditProfile.route) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // 프로필 정보 수정
+        composable(
+            route = EditProfile.route,
+            enterTransition = slideInLeft,
+            popEnterTransition = fadeIn,
+            exitTransition = fadeOut,
+            popExitTransition = slideOutRight,
+        ) {
+            EditProfileScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Profile.route,
+                        inclusive = false
+                    )
+                }
             )
         }
     }

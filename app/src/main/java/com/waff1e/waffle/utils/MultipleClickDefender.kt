@@ -1,5 +1,6 @@
 package com.waff1e.waffle.utils
 
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,7 +35,8 @@ fun Modifier.clickableSingle(
     enabled: Boolean = true,
     onClickLabel: String? = null,
     role: Role? = null,
-    onClick: () -> Unit
+    disableRipple: Boolean = false,
+    onClick: () -> Unit,
 ) = composed(
     inspectorInfo = debugInspectorInfo {
         name = "clickable"
@@ -50,7 +52,7 @@ fun Modifier.clickableSingle(
         onClickLabel = onClickLabel,
         onClick = { multipleClickDefender.processEvent { onClick() } },
         role = role,
-        indication = LocalIndication.current,
+        indication = if (disableRipple) null else LocalIndication.current,
         interactionSource = remember { MutableInteractionSource() }
     )
 }
