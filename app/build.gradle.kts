@@ -97,6 +97,9 @@ dependencies {
 
     // 상태바 투명하게 설정
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.18.0")
+
+    // Glide-Compose
+    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 }
 
 kapt {

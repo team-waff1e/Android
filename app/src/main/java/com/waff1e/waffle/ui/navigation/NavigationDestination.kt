@@ -20,4 +20,6 @@ sealed class NavigationDestination(val route: String, val titleRes: Int) {
     object Profile : NavigationDestination("profile", R.string.profile)
 
     object EditProfile : NavigationDestination("edit_profile", R.string.edit_profile)
+
+    object ProfileDetail : NavigationDestination("profile_detail", R.string.profile_detail)
 }

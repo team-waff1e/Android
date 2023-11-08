@@ -1,4 +1,4 @@
-package com.waff1e.waffle.auth.ui.signup
+package com.waff1e.waffle.member.ui.change_password
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,29 +40,28 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.auth.ui.signup.SignupTextField
+import com.waff1e.waffle.auth.ui.signup.SignupUiState
+import com.waff1e.waffle.auth.ui.signup.SignupSupportingText
+import com.waff1e.waffle.auth.ui.signup.isPasswordMatch
+import com.waff1e.waffle.auth.ui.signup.isPasswordValid
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.di.NAME_MAX_LENGTH
 import com.waff1e.waffle.di.NICKNAME_MAX_LENGTH
+import com.waff1e.waffle.member.ui.UpdateProfileUiState
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Error
 import com.waff1e.waffle.ui.theme.Typography
-import com.waff1e.waffle.ui.theme.WaffleTheme
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignupScreen(
+fun ChangePasswordScreen(
     modifier: Modifier = Modifier,
-    viewModel: SignupViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
-    navigateBack: () -> Unit,
-    navigateToHome: () -> Unit,
+    navigateBack: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -73,38 +71,20 @@ fun SignupScreen(
             navigationIconClicked = navigateBack
         )
     }) { innerPadding ->
-        SignupBody(
-            modifier = modifier.padding(innerPadding),
+        ChangePasswordBody(
+            modifier = modifier
+                .padding(innerPadding),
             navigateBack = navigateBack,
-            signupUiState = viewModel.signupUiState,
-            onItemValueChanged = viewModel::updateSignupUiState,
-            onSignupBtnClicked = {
-                coroutineScope.launch {
-                    val responseResult = viewModel.requestSignup()
-
-                    if (responseResult.isSuccess) {
-                        // TODO. 회원가입 성공 처리
-                        navigateToHome()
-                    } else {
-                        // TODO. 회원가입 성공 처리
-                    }
-                }
-            },
-            checkEmail = viewModel::checkEmail,
-            checkNickname = viewModel::checkNickname
+            updateProfileUiState = UpdateProfileUiState()
         )
     }
 }
 
 @Composable
-fun SignupBody(
+fun ChangePasswordBody(
     modifier: Modifier = Modifier,
     navigateBack: () -> Unit,
-    signupUiState: SignupUiState,
-    onItemValueChanged: (SignupUiState) -> Unit,
-    onSignupBtnClicked: () -> Unit,
-    checkEmail: suspend () -> Unit,
-    checkNickname: suspend () -> Unit,
+    updateProfileUiState: UpdateProfileUiState
 ) {
     // Composable에 포커스가 있는지 확인하는 변수
     var isFocused by remember { mutableStateOf(false) }
@@ -134,74 +114,7 @@ fun SignupBody(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth(),
-            text = stringResource(id = R.string.signup_title_text),
-            style = Typography.titleLarge,
-            textAlign = TextAlign.Start
-        )
 
-        Box(modifier = Modifier.size(10.dp))
-
-        SignupTextField(
-            placeholderText = stringResource(id = R.string.email),
-            value = signupUiState.email,
-            signupUiState = signupUiState,
-            onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            ),
-            checkEmail = checkEmail,
-            checkNickname = checkNickname,
-        )
-
-        SignupTextField(
-            placeholderText = stringResource(id = R.string.name),
-            value = signupUiState.name,
-            signupUiState = signupUiState,
-            onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            checkEmail = checkEmail,
-            checkNickname = checkNickname,
-        )
-
-        SignupTextField(
-            placeholderText = stringResource(id = R.string.password),
-            value = signupUiState.password,
-            signupUiState = signupUiState,
-            onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Next
-            ),
-            checkEmail = checkEmail,
-            checkNickname = checkNickname,
-        )
-
-        SignupTextField(
-            placeholderText = stringResource(id = R.string.password_confirm),
-            value = signupUiState.passwordConfirm,
-            signupUiState = signupUiState,
-            onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Next
-            ),
-            checkEmail = checkEmail,
-            checkNickname = checkNickname,
-        )
-
-        SignupTextField(
-            placeholderText = stringResource(id = R.string.nickname),
-            value = signupUiState.nickname,
-            signupUiState = signupUiState,
-            onItemValueChanged = onItemValueChanged,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            checkEmail = checkEmail,
-            checkNickname = checkNickname,
-        )
 
         Box(modifier = Modifier.weight(1f))
 
@@ -209,10 +122,9 @@ fun SignupBody(
             onClick = {
                 if (defenderDoubleClick) {
                     defenderDoubleClick = false
-                    onSignupBtnClicked()
                 }
             },
-            enabled = signupUiState.canSignup,
+            enabled = true,
             modifier = Modifier
                 .fillMaxWidth(),
             shape = ShapeDefaults.Medium,
@@ -228,15 +140,13 @@ fun SignupBody(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignupTextField(
+fun UpdateProfileTextField(
     modifier: Modifier = Modifier,
     placeholderText: String,
     keyboardOptions: KeyboardOptions,
     value: String,
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
-    checkEmail: suspend () -> Unit,
-    checkNickname: suspend () -> Unit,
 ) {
     // 포커스 관리하는 포커스 매니저
     val focusManager = LocalFocusManager.current
@@ -253,43 +163,16 @@ fun SignupTextField(
         }
     }
     val interactionSource = remember { MutableInteractionSource() }
-    val debounceTime = 350L
-
-    when (placeholderText) {
-        context.getString(R.string.email) -> {
-            LaunchedEffect(key1 = signupUiState.email) {
-                delay(debounceTime)
-                if (signupUiState.email.isNotBlank()) {
-                    checkEmail()
-                }
-            }
-        }
-
-        context.getString(R.string.nickname) -> {
-            LaunchedEffect(key1 = signupUiState.nickname) {
-                delay(debounceTime)
-                if (signupUiState.nickname.isNotBlank()) {
-                    checkNickname()
-                }
-            }
-        }
-    }
 
     OutlinedTextField(
         value = value,
         onValueChange = {
             when (placeholderText) {
-                context.getString(R.string.email) -> onItemValueChanged(signupUiState.copy(email = it))
-                context.getString(R.string.name) -> onItemValueChanged(signupUiState.copy(name = it))
-                context.getString(R.string.password) -> onItemValueChanged(signupUiState.copy(password = it))
                 context.getString(R.string.password_confirm) -> onItemValueChanged(signupUiState.copy(passwordConfirm = it))
-                context.getString(R.string.nickname) -> onItemValueChanged(signupUiState.copy(nickname = it))
             }
         },
         label = {
-            Text(
-                text = placeholderText,
-            )
+            Text(text = placeholderText)
         },
         trailingIcon = if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(R.string.password_confirm)) {
             {
@@ -334,11 +217,7 @@ fun SignupTextField(
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         isError = when (placeholderText) {
-            context.getString(R.string.email) -> !signupUiState.canEmail
             context.getString(R.string.password_confirm) -> signupUiState.passwordConfirm.isNotEmpty() && !signupUiState.isPasswordMatch()
-            context.getString(R.string.nickname) -> signupUiState.nickname.length > NICKNAME_MAX_LENGTH || !signupUiState.canNickname
-            context.getString(R.string.password) -> signupUiState.password.isNotEmpty() && !signupUiState.isPasswordValid()
-            context.getString(R.string.name) -> signupUiState.name.length > NAME_MAX_LENGTH
             else -> false
         },
         supportingText = {
@@ -350,39 +229,19 @@ fun SignupTextField(
 }
 
 @Composable
-fun SignupSupportingText(
+fun UpdateProfileSupportingText(
     modifier: Modifier = Modifier,
     placeholderText: String,
     signupUiState: SignupUiState,
 ) {
-    var isNeed = false
-
-    var text = ""
     val context = LocalContext.current
+    var isNeed = false
+    var text = ""
 
     when (placeholderText) {
-        context.getString(R.string.email) -> if (signupUiState.email.isNotEmpty() && !signupUiState.canEmail) {
-            isNeed = true
-            text = stringResource(id = R.string.exist_email_error)
-        }
         context.getString(R.string.password_confirm) -> if (signupUiState.passwordConfirm.isNotEmpty() && signupUiState.password != signupUiState.passwordConfirm) {
             isNeed = true
             text = stringResource(id = R.string.password_match_error)
-        }
-        context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
-            isNeed = true
-            text = stringResource(id = R.string.exist_nickname_error)
-        } else if (signupUiState.nickname.length > NICKNAME_MAX_LENGTH) {
-            isNeed = true
-            text = stringResource(id = R.string.nickname_length_error)
-        }
-        context.getString(R.string.password) -> if (signupUiState.password.isNotEmpty() && !signupUiState.isPasswordValid()) {
-            isNeed = true
-            text = stringResource(id = R.string.password_rule)
-        }
-        context.getString(R.string.name) -> if (signupUiState.name.length > NAME_MAX_LENGTH) {
-            isNeed = true
-            text = stringResource(id = R.string.name_length_error)
         }
     }
 
@@ -391,17 +250,6 @@ fun SignupSupportingText(
             modifier = modifier,
             text = text,
             color = Error
-        )
-    }
-}
-
-@Composable
-@Preview
-fun SignupPreview() {
-    WaffleTheme {
-        SignupScreen(
-            navigateBack = { },
-            navigateToHome = { },
         )
     }
 }

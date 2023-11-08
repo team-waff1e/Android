@@ -10,6 +10,7 @@
     <string name="post_waffle">게시하기</string>
     <string name="profile">프로필</string>
     <string name="edit_profile">내 계정</string>
+    <string name="profile_detail">계정 정보</string>
 
     <!-- 요소 관련 -->
     <string name="navigation_icon">네비게이션 아이콘</string>
@@ -28,19 +29,33 @@
     <string name="logout">로그아웃</string>
     <string name="bookmark">북마크</string>
     <string name="post_waffle_placeholder">무슨 일이 일어나고 있나요?</string>
+    <string name="profile_info">계정 정보</string>
+    <string name="change_password">비밀번호 변경하기</string>
+    <string name="delete_account">계정 삭제하기</string>
+    <string name="user_id">사용자 아이디</string>
+    <string name="cancel">취소</string>
+    <string name="logout_dialog_desc">로그아웃하면 내 디바이스의 Waffle 데이터가 모두 삭제됩니다</string>
+    <string name="delete_dialog_desc">계정을 삭제하면 Waffle에서의 모든 활동 기록이 영구적으로 삭제되고 복구가 불가능합니다</string>
+    <string name="delete">삭제</string>
+    <string name="password_rule">비밀번호는 8-14자, 영문, 숫자 특수문자(!@#$%^&amp;*)만 사용 가능하며, 1개 이상씩 포함해야 합니다</string>
+    <string name="name_length_error">이름은 최대 50글자까지 입력 할 수 있습니다</string>
+    <string name="nickname_length_error">닉네임은 최대 20글자까지만 가능합니다</string>
 
     <!-- 기타 -->
     <string name="home_title_text">지금 세계에서 무슨 일이 일어나고 있는지 알아보세요</string>
     <string name="signup_title_text">계정을 생성하세요</string>
     <string name="login_title_text">로그인 정보를 입력하세요</string>
-
     <string name="exit_toast_message">뒤로가기 버튼을 한번 더 누르면 종료됩니다</string>
     <string name="password_visible_btn_description">비밀번호 표시 아이콘</string>
     <string name="exist_email_error">이미 가입된 이메일 입니다</string>
     <string name="exist_nickname_error">이미 사용중인 닉네임입니다</string>
     <string name="password_match_error">비밀번호가 일치하지 않습니다</string>
+    <string name="logout_desc">계정을 안전하게 로그아웃 하세요</string>
+    <string name="profile_info_desc">닉네임과 이메일 주소와 같은 계정 정보를 조회 합니다</string>
+    <string name="change_password_desc">언제든지 비밀번호를 변경하세요</string>
+    <string name="delete_account_desc">한 번 삭제한 계정은 되돌릴 수 없습니다</string>
 
-    <!-- Description 관련 -->
+    <!-- Compose Description(접근성) 관련 -->
     <string name="drawer_item_icon_desc">Drawer 아이템 아이콘</string>
     <string name="fab_desc">플로팅 액션 버튼 아이콘</string>
     <string name="edit_profile_item_icon">프로필 수정 아이템 아이콘</string>
@@ -50,4 +65,5 @@
     <string name="tab_item_type_comment">답글</string>
     <string name="tab_item_type_media">미디어</string>
     <string name="tab_item_type_like">좋아요</string>
+
 </resources>

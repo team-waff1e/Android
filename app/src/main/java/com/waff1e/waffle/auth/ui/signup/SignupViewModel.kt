@@ -17,7 +17,6 @@ class SignupViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
     var signupUiState by mutableStateOf(SignupUiState())
-        private set
 
     fun updateSignupUiState(newSignupUiState: SignupUiState) {
         signupUiState = newSignupUiState.copy(

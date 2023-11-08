@@ -11,6 +11,7 @@ import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
 import com.waff1e.waffle.member.ui.edit_profile.EditProfileScreen
 import com.waff1e.waffle.member.ui.profile.ProfileScreen
+import com.waff1e.waffle.member.ui.profile_detail.ProfileDetailScreen
 import com.waff1e.waffle.ui.home.HomeScreen
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
@@ -20,6 +21,7 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Profile
 import com.waff1e.waffle.ui.navigation.NavigationDestination.EditProfile
+import com.waff1e.waffle.ui.navigation.NavigationDestination.ProfileDetail
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
@@ -37,7 +39,7 @@ fun WaffleNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Waffles.route,
+        startDestination = EditProfile.route,
         modifier = modifier,
         enterTransition = fadeIn,
         exitTransition = fadeOut,
@@ -200,6 +202,35 @@ fun WaffleNavHost(
                 navigateBack = {
                     navController.popBackStack(
                         route = Profile.route,
+                        inclusive = false
+                    )
+                },
+                navigateToProfileDetail = {
+                    navController.navigate(route = ProfileDetail.route) {
+                        launchSingleTop = true
+                    }
+                },
+                navigateToHome = {
+                    navController.navigate(route = Home.route) {
+                        launchSingleTop = true
+                        popUpTo(Home.route) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        // 계정 정보
+        composable(
+            route = ProfileDetail.route,
+            enterTransition = slideInLeft,
+            popEnterTransition = fadeIn,
+            exitTransition = fadeOut,
+            popExitTransition = slideOutRight,
+        ) {
+            ProfileDetailScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = EditProfile.route,
                         inclusive = false
                     )
                 }

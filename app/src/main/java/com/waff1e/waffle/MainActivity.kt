@@ -21,8 +21,15 @@ import kotlinx.serialization.json.JsonNull.content
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        var screenHeightDp = 0f
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val displayMetrics = resources.displayMetrics
+        screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
 
         setContent {
             WaffleTheme {

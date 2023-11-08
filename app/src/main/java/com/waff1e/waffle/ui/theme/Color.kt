@@ -19,4 +19,6 @@ val DisableWhiteDark = Color(0xFF7F7F7F)
 val DisableWaffleBrownLight = Color(0xFFecb986)
 val DisableWhiteLight = Color(0xFFFFFFFF)
 
+val LightDark = Color(0xFF242424)
+
 val Error = Color(0xFFD32F2F)
