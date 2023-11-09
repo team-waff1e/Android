@@ -1,4 +1,37 @@
 package com.waff1e.waffle.member.ui.edit_profile
 
-class EditProfileViewModel {
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import com.waff1e.waffle.dto.ResponseResult
+import com.waff1e.waffle.dto.check
+import com.waff1e.waffle.member.data.MemberRepository
+import com.waff1e.waffle.member.dto.PasswordRequest
+import com.waff1e.waffle.member.network.MemberService
+import com.waff1e.waffle.member.ui.change_password.toUpdatePasswordRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+
+@HiltViewModel
+class EditProfileViewModel @Inject constructor(
+    private val memberRepository: MemberRepository,
+) : ViewModel() {
+    var pwd by mutableStateOf("")
+
+    fun updatePwd(newInput: String) {
+        pwd = newInput
+    }
+
+    suspend fun requestDeleteMyProfile(): ResponseResult {
+        val passwordRequest = PasswordRequest(pwd)
+        val checkPasswordResponseResult = memberRepository.checkPassword(passwordRequest).check()
+
+        return if (!checkPasswordResponseResult.isSuccess) {
+            checkPasswordResponseResult
+        } else {
+            memberRepository.deleteMyProfile(passwordRequest).check()
+        }
+    }
 }

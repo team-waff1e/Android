@@ -6,10 +6,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -44,7 +46,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.DEBOUNCE_TIME
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
+import com.waff1e.waffle.di.NAME_MAX_LENGTH
+import com.waff1e.waffle.di.NICKNAME_MAX_LENGTH
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Error
 import com.waff1e.waffle.ui.theme.Typography
@@ -59,7 +64,7 @@ fun SignupScreen(
     viewModel: SignupViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     navigateBack: () -> Unit,
-    navigateToHome: () -> Unit
+    navigateToHome: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -100,7 +105,7 @@ fun SignupBody(
     onItemValueChanged: (SignupUiState) -> Unit,
     onSignupBtnClicked: () -> Unit,
     checkEmail: suspend () -> Unit,
-    checkNickname: suspend () -> Unit
+    checkNickname: suspend () -> Unit,
 ) {
     // Composable에 포커스가 있는지 확인하는 변수
     var isFocused by remember { mutableStateOf(false) }
@@ -232,7 +237,7 @@ fun SignupTextField(
     signupUiState: SignupUiState,
     onItemValueChanged: (SignupUiState) -> Unit,
     checkEmail: suspend () -> Unit,
-    checkNickname: suspend () -> Unit
+    checkNickname: suspend () -> Unit,
 ) {
     // 포커스 관리하는 포커스 매니저
     val focusManager = LocalFocusManager.current
@@ -241,19 +246,19 @@ fun SignupTextField(
     var visualTransformation: VisualTransformation by remember {
         if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(
                 R.string.password_confirm
-            )) {
+            )
+        ) {
             mutableStateOf(PasswordVisualTransformation())
         } else {
             mutableStateOf(VisualTransformation.None)
         }
     }
     val interactionSource = remember { MutableInteractionSource() }
-    val debounceTime = 350L
 
     when (placeholderText) {
         context.getString(R.string.email) -> {
             LaunchedEffect(key1 = signupUiState.email) {
-                delay(debounceTime)
+                delay(DEBOUNCE_TIME)
                 if (signupUiState.email.isNotBlank()) {
                     checkEmail()
                 }
@@ -262,7 +267,7 @@ fun SignupTextField(
 
         context.getString(R.string.nickname) -> {
             LaunchedEffect(key1 = signupUiState.nickname) {
-                delay(debounceTime)
+                delay(DEBOUNCE_TIME)
                 if (signupUiState.nickname.isNotBlank()) {
                     checkNickname()
                 }
@@ -276,9 +281,23 @@ fun SignupTextField(
             when (placeholderText) {
                 context.getString(R.string.email) -> onItemValueChanged(signupUiState.copy(email = it))
                 context.getString(R.string.name) -> onItemValueChanged(signupUiState.copy(name = it))
-                context.getString(R.string.password) -> onItemValueChanged(signupUiState.copy(password = it))
-                context.getString(R.string.password_confirm) -> onItemValueChanged(signupUiState.copy(passwordConfirm = it))
-                context.getString(R.string.nickname) -> onItemValueChanged(signupUiState.copy(nickname = it))
+                context.getString(R.string.password) -> onItemValueChanged(
+                    signupUiState.copy(
+                        password = it
+                    )
+                )
+
+                context.getString(R.string.password_confirm) -> onItemValueChanged(
+                    signupUiState.copy(
+                        passwordConfirm = it
+                    )
+                )
+
+                context.getString(R.string.nickname) -> onItemValueChanged(
+                    signupUiState.copy(
+                        nickname = it
+                    )
+                )
             }
         },
         label = {
@@ -328,14 +347,14 @@ fun SignupTextField(
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         isError = when (placeholderText) {
             context.getString(R.string.email) -> !signupUiState.canEmail
-//            context.getString(R.string.name) -> !signupUiState.isNameValid()
-//            context.getString(R.string.password) -> !signupUiState.isPasswordIsNotBlank()
-            context.getString(R.string.password_confirm) -> !signupUiState.isPasswordMatch()
-            context.getString(R.string.nickname) -> !signupUiState.canNickname
+            context.getString(R.string.password_confirm) -> signupUiState.passwordConfirm.isNotEmpty() && !signupUiState.isPasswordMatch()
+            context.getString(R.string.nickname) -> signupUiState.nickname.length > NICKNAME_MAX_LENGTH || !signupUiState.canNickname
+            context.getString(R.string.password) -> signupUiState.password.isNotEmpty() && !signupUiState.isPasswordValid()
+            context.getString(R.string.name) -> signupUiState.name.length > NAME_MAX_LENGTH
             else -> false
         },
         supportingText = {
-            SupportingText(placeholderText = placeholderText, signupUiState = signupUiState)
+            SignupSupportingText(placeholderText = placeholderText, signupUiState = signupUiState)
         },
         modifier = modifier
             .fillMaxWidth(),
@@ -343,7 +362,7 @@ fun SignupTextField(
 }
 
 @Composable
-fun SupportingText(
+fun SignupSupportingText(
     modifier: Modifier = Modifier,
     placeholderText: String,
     signupUiState: SignupUiState,
@@ -367,6 +386,19 @@ fun SupportingText(
         context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
             isNeed = true
             text = stringResource(id = R.string.exist_nickname_error)
+        } else if (signupUiState.nickname.length > NICKNAME_MAX_LENGTH) {
+            isNeed = true
+            text = stringResource(id = R.string.nickname_length_error)
+        }
+
+        context.getString(R.string.password) -> if (signupUiState.password.isNotEmpty() && !signupUiState.isPasswordValid()) {
+            isNeed = true
+            text = stringResource(id = R.string.password_rule)
+        }
+
+        context.getString(R.string.name) -> if (signupUiState.name.length > NAME_MAX_LENGTH) {
+            isNeed = true
+            text = stringResource(id = R.string.name_length_error)
         }
     }
 
@@ -384,8 +416,8 @@ fun SupportingText(
 fun SignupPreview() {
     WaffleTheme {
         SignupScreen(
-            navigateBack = {  },
-            navigateToHome = {  },
+            navigateBack = { },
+            navigateToHome = { },
         )
     }
 }

@@ -17,7 +17,6 @@ class SignupViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
     var signupUiState by mutableStateOf(SignupUiState())
-        private set
 
     fun updateSignupUiState(newSignupUiState: SignupUiState) {
         signupUiState = newSignupUiState.copy(
@@ -26,13 +25,13 @@ class SignupViewModel @Inject constructor(
     }
 
     suspend fun checkEmail() {
-        val responseResult = authRepository.checkEmailStream(CheckEmailRequest(signupUiState.email)).check()
+        val responseResult = authRepository.checkEmail(CheckEmailRequest(signupUiState.email)).check()
         val checkSignupUiState = signupUiState.copy(canEmail = responseResult.isSuccess)
         updateSignupUiState(checkSignupUiState)
     }
 
     suspend fun checkNickname() {
-        val responseResult = authRepository.checkNickNameStream(CheckNickNameRequest(signupUiState.nickname)).check()
+        val responseResult = authRepository.checkNickName(CheckNickNameRequest(signupUiState.nickname)).check()
         val checkSignupUiState = signupUiState.copy(canNickname = responseResult.isSuccess)
         updateSignupUiState(checkSignupUiState)
     }

@@ -15,9 +15,9 @@ interface AuthRepository {
 
      suspend fun signup(signupRequest: SignupRequest): Response<DefaultResponse>
 
-     suspend fun checkEmailStream(email: CheckEmailRequest): Response<DefaultResponse>
+     suspend fun checkEmail(email: CheckEmailRequest): Response<DefaultResponse>
 
-     suspend fun checkNickNameStream(nickname: CheckNickNameRequest): Response<DefaultResponse>
+     suspend fun checkNickName(nickname: CheckNickNameRequest): Response<DefaultResponse>
 }
 
 class DefaultAuthRepository @Inject constructor(
@@ -32,11 +32,11 @@ class DefaultAuthRepository @Inject constructor(
           return authService.requestSignup(signupRequest)
      }
 
-     override suspend fun checkEmailStream(email: CheckEmailRequest): Response<DefaultResponse> {
+     override suspend fun checkEmail(email: CheckEmailRequest): Response<DefaultResponse> {
           return authService.checkEmail(email)
      }
 
-     override suspend fun checkNickNameStream(nickname: CheckNickNameRequest): Response<DefaultResponse> {
+     override suspend fun checkNickName(nickname: CheckNickNameRequest): Response<DefaultResponse> {
           return authService.checkNickname(nickname)
      }
 }

@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.create
 import java.lang.reflect.Member
 import java.lang.reflect.Type
@@ -27,11 +28,16 @@ import javax.inject.Singleton
 
 const val LIMIT = 20
 const val DOUBLE_CLICK_DELAY = 1000L
+// 8-14자리 영문
+const val PASSWORD_RULE = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[\$@\$!%*#?&.])[A-Za-z[0-9]!@#$%^&*]{8,14}\$"
+const val NICKNAME_MAX_LENGTH = 20
+const val NAME_MAX_LENGTH = 50
+const val DEBOUNCE_TIME = 350L
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    private const val BASE_URL = "https://392d846b-a992-42f4-9fb9-a9adbed68da4.mock.pstmn.io"
+    private const val BASE_URL = "https://f005fffd-9a26-4a99-bcbb-24171bfba8ee.mock.pstmn.io"
 
     @Singleton
     @Provides

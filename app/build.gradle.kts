@@ -72,15 +72,15 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.4")
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
 
     // Hilt (DI 라이브러리)
     implementation("com.google.dagger:hilt-android:2.46.1")
     kapt("com.google.dagger:hilt-android-compiler:2.46.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // okhttp3
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Retrofit2
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -91,12 +91,16 @@ dependencies {
 
     // Retrofit2 Converter
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation("com.squareup.retrofit2:converter-scalars:2.4.0")
 
     // Preferences Datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // 상태바 투명하게 설정
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.18.0")
+
+    // Glide-Compose
+    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 }
 
 kapt {

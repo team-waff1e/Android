@@ -1,6 +1,5 @@
 package com.waff1e.waffle.member.ui.profile
 
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +13,6 @@ import com.waff1e.waffle.waffle.data.WaffleRepository
 import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
-import com.waff1e.waffle.waffle.ui.waffles.WaffleListViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
