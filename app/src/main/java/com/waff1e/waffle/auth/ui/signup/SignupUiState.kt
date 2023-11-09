@@ -24,8 +24,6 @@ fun SignupUiState.toSignupRequest() = SignupRequest(
     nickname = nickname
 )
 
-// TODO. 패스워드 조건 추가 필요
-
 fun SignupUiState.isPasswordValid(): Boolean {
     return Pattern.matches(PASSWORD_RULE, password)
 }

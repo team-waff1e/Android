@@ -20,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.create
 import java.lang.reflect.Member
 import java.lang.reflect.Type
@@ -31,6 +32,7 @@ const val DOUBLE_CLICK_DELAY = 1000L
 const val PASSWORD_RULE = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[\$@\$!%*#?&.])[A-Za-z[0-9]!@#$%^&*]{8,14}\$"
 const val NICKNAME_MAX_LENGTH = 20
 const val NAME_MAX_LENGTH = 50
+const val DEBOUNCE_TIME = 350L
 
 @Module
 @InstallIn(SingletonComponent::class)

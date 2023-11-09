@@ -9,13 +9,17 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.with
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -23,8 +27,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bumptech.glide.integration.compose.CrossFade
@@ -95,6 +103,9 @@ fun ProfileDetailProfileImage(
     modifier: Modifier = Modifier,
     imgURL: String,
 ) {
+    val placeholder =
+        if (isSystemInDarkTheme()) placeholder(R.drawable.person) else placeholder(R.drawable.person_white)
+
     Column(
         modifier = modifier
             .clickableSingle(
@@ -118,8 +129,8 @@ fun ProfileDetailProfileImage(
             model = imgURL,
             contentScale = ContentScale.Crop,
             transition = CrossFade,
-            loading = placeholder(R.drawable.person),
-            failure = placeholder(R.drawable.person),
+            loading = placeholder,
+            failure = placeholder,
             contentDescription = stringResource(id = R.string.profile_img),
         )
     }
@@ -142,18 +153,10 @@ fun ProfileDetailItem(
             style = Typography.titleSmall
         )
 
-        AnimatedContent(
-            targetState = content,
-            transitionSpec = {
-                scaleIn(animationSpec = tween(durationMillis = 100)) togetherWith ExitTransition.None
-            },
-            label = ""
-        ) { content ->
-            Text(
-                text = content,
-                style = Typography.bodyMedium,
-                color = MaterialTheme.colorScheme.inverseSurface
-            )
-        }
+        Text(
+            text = content,
+            style = Typography.bodyMedium,
+            color = MaterialTheme.colorScheme.inverseSurface
+        )
     }
 }

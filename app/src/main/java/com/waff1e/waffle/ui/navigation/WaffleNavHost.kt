@@ -9,19 +9,23 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.member.ui.change_nickname.ChangeNicknameScreen
+import com.waff1e.waffle.member.ui.change_password.ChangePasswordScreen
 import com.waff1e.waffle.member.ui.edit_profile.EditProfileScreen
 import com.waff1e.waffle.member.ui.profile.ProfileScreen
 import com.waff1e.waffle.member.ui.profile_detail.ProfileDetailScreen
 import com.waff1e.waffle.ui.home.HomeScreen
+import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangePassword
+import com.waff1e.waffle.ui.navigation.NavigationDestination.EditProfile
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
 import com.waff1e.waffle.ui.navigation.NavigationDestination.PostWaffle
+import com.waff1e.waffle.ui.navigation.NavigationDestination.Profile
+import com.waff1e.waffle.ui.navigation.NavigationDestination.ProfileDetail
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
-import com.waff1e.waffle.ui.navigation.NavigationDestination.Profile
-import com.waff1e.waffle.ui.navigation.NavigationDestination.EditProfile
-import com.waff1e.waffle.ui.navigation.NavigationDestination.ProfileDetail
+import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangeNickname
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
@@ -215,6 +219,16 @@ fun WaffleNavHost(
                         launchSingleTop = true
                         popUpTo(Home.route) { inclusive = false }
                     }
+                },
+                navigateToChangePassword = {
+                    navController.navigate(route = ChangePassword.route) {
+                        launchSingleTop = true
+                    }
+                },
+                navigateToChangeNickname = {
+                    navController.navigate(route = ChangeNickname.route) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -228,6 +242,42 @@ fun WaffleNavHost(
             popExitTransition = slideOutRight,
         ) {
             ProfileDetailScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = EditProfile.route,
+                        inclusive = false
+                    )
+                }
+            )
+        }
+
+        // 비밀번호 변경
+        composable(
+            route = ChangePassword.route,
+            enterTransition = slideInLeft,
+            popEnterTransition = fadeIn,
+            exitTransition = fadeOut,
+            popExitTransition = slideOutRight,
+        ) {
+            ChangePasswordScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = EditProfile.route,
+                        inclusive = false
+                    )
+                }
+            )
+        }
+
+        // 닉네임 변경
+        composable(
+            route = ChangeNickname.route,
+            enterTransition = slideInLeft,
+            popEnterTransition = fadeIn,
+            exitTransition = fadeOut,
+            popExitTransition = slideOutRight,
+        ) {
+            ChangeNicknameScreen(
                 navigateBack = {
                     navController.popBackStack(
                         route = EditProfile.route,

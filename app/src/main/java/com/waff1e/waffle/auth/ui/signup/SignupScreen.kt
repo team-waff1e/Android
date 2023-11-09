@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.DEBOUNCE_TIME
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.di.NAME_MAX_LENGTH
 import com.waff1e.waffle.di.NICKNAME_MAX_LENGTH
@@ -253,12 +254,11 @@ fun SignupTextField(
         }
     }
     val interactionSource = remember { MutableInteractionSource() }
-    val debounceTime = 350L
 
     when (placeholderText) {
         context.getString(R.string.email) -> {
             LaunchedEffect(key1 = signupUiState.email) {
-                delay(debounceTime)
+                delay(DEBOUNCE_TIME)
                 if (signupUiState.email.isNotBlank()) {
                     checkEmail()
                 }
@@ -267,7 +267,7 @@ fun SignupTextField(
 
         context.getString(R.string.nickname) -> {
             LaunchedEffect(key1 = signupUiState.nickname) {
-                delay(debounceTime)
+                delay(DEBOUNCE_TIME)
                 if (signupUiState.nickname.isNotBlank()) {
                     checkNickname()
                 }
@@ -281,9 +281,23 @@ fun SignupTextField(
             when (placeholderText) {
                 context.getString(R.string.email) -> onItemValueChanged(signupUiState.copy(email = it))
                 context.getString(R.string.name) -> onItemValueChanged(signupUiState.copy(name = it))
-                context.getString(R.string.password) -> onItemValueChanged(signupUiState.copy(password = it))
-                context.getString(R.string.password_confirm) -> onItemValueChanged(signupUiState.copy(passwordConfirm = it))
-                context.getString(R.string.nickname) -> onItemValueChanged(signupUiState.copy(nickname = it))
+                context.getString(R.string.password) -> onItemValueChanged(
+                    signupUiState.copy(
+                        password = it
+                    )
+                )
+
+                context.getString(R.string.password_confirm) -> onItemValueChanged(
+                    signupUiState.copy(
+                        passwordConfirm = it
+                    )
+                )
+
+                context.getString(R.string.nickname) -> onItemValueChanged(
+                    signupUiState.copy(
+                        nickname = it
+                    )
+                )
             }
         },
         label = {
@@ -291,37 +305,35 @@ fun SignupTextField(
                 text = placeholderText,
             )
         },
-        trailingIcon = if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(R.string.password_confirm)) {
+        trailingIcon = if (placeholderText == context.getString(R.string.password) || placeholderText == context.getString(
+                R.string.password_confirm
+            )
+        ) {
             {
-                Row(
-                    modifier = Modifier
-                        .wrapContentSize()
+                if ((placeholderText == context.getString(R.string.password) && signupUiState.password.isNotEmpty())
+                    || (placeholderText == context.getString(R.string.password_confirm) && signupUiState.passwordConfirm.isNotEmpty())
                 ) {
-                    if ((placeholderText == context.getString(R.string.password) && signupUiState.password.isNotEmpty())
-                        || (placeholderText == context.getString(R.string.password_confirm) && signupUiState.passwordConfirm.isNotEmpty())
-                    ) {
-                        Icon(
-                            modifier = modifier
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = null
-                                ) {
-                                    visualTransformation =
-                                        if (visualTransformation == PasswordVisualTransformation()) {
-                                            VisualTransformation.None
-                                        } else {
-                                            PasswordVisualTransformation()
-                                        }
-                                },
-                            imageVector = if (visualTransformation == PasswordVisualTransformation()) {
-                                ImageVector.vectorResource(id = R.drawable.visibility)
-                            } else {
-                                ImageVector.vectorResource(id = R.drawable.visibility_off)
+                    Icon(
+                        modifier = modifier
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                visualTransformation =
+                                    if (visualTransformation == PasswordVisualTransformation()) {
+                                        VisualTransformation.None
+                                    } else {
+                                        PasswordVisualTransformation()
+                                    }
                             },
-                            contentDescription = stringResource(id = R.string.password_visible_btn_description),
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
+                        imageVector = if (visualTransformation == PasswordVisualTransformation()) {
+                            ImageVector.vectorResource(id = R.drawable.visibility)
+                        } else {
+                            ImageVector.vectorResource(id = R.drawable.visibility_off)
+                        },
+                        contentDescription = stringResource(id = R.string.password_visible_btn_description),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
         } else {
@@ -365,10 +377,12 @@ fun SignupSupportingText(
             isNeed = true
             text = stringResource(id = R.string.exist_email_error)
         }
+
         context.getString(R.string.password_confirm) -> if (signupUiState.passwordConfirm.isNotEmpty() && signupUiState.password != signupUiState.passwordConfirm) {
             isNeed = true
             text = stringResource(id = R.string.password_match_error)
         }
+
         context.getString(R.string.nickname) -> if (signupUiState.nickname.isNotEmpty() && !signupUiState.canNickname) {
             isNeed = true
             text = stringResource(id = R.string.exist_nickname_error)
@@ -376,10 +390,12 @@ fun SignupSupportingText(
             isNeed = true
             text = stringResource(id = R.string.nickname_length_error)
         }
+
         context.getString(R.string.password) -> if (signupUiState.password.isNotEmpty() && !signupUiState.isPasswordValid()) {
             isNeed = true
             text = stringResource(id = R.string.password_rule)
         }
+
         context.getString(R.string.name) -> if (signupUiState.name.length > NAME_MAX_LENGTH) {
             isNeed = true
             text = stringResource(id = R.string.name_length_error)
