@@ -43,7 +43,7 @@ fun WaffleNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = EditProfile.route,
+        startDestination = Waffles.route,
         modifier = modifier,
         enterTransition = fadeIn,
         exitTransition = fadeOut,
