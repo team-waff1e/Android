@@ -1,6 +1,7 @@
 package com.waff1e.waffle.auth.ui.login
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -57,18 +58,22 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     canNavigateBack: Boolean = true,
     navigateBack: () -> Unit,
-    navigateToWaffles: () -> Unit
+    navigateToWaffles: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(topBar = {
-        WaffleTopAppBar(
-            hasNavigationIcon = canNavigateBack,
-            navigationIconClicked = navigateBack,
-        )
-    }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            WaffleTopAppBar(
+                hasNavigationIcon = canNavigateBack,
+                navigationIconClicked = navigateBack,
+            )
+        }
+    ) { innerPadding ->
         LoginBody(
-            modifier = modifier.padding(innerPadding),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             navigateBack = navigateBack,
             loginUiState = viewModel.loginUiState,
             onItemValueChanged = viewModel::updateLoginUiState,
@@ -227,11 +232,12 @@ fun LoginTextField(
                             interactionSource = interactionSource,
                             indication = null
                         ) {
-                            visualTransformation = if (visualTransformation == PasswordVisualTransformation()) {
-                                VisualTransformation.None
-                            } else {
-                                PasswordVisualTransformation()
-                            }
+                            visualTransformation =
+                                if (visualTransformation == PasswordVisualTransformation()) {
+                                    VisualTransformation.None
+                                } else {
+                                    PasswordVisualTransformation()
+                                }
                         },
                         imageVector = if (visualTransformation == PasswordVisualTransformation()) {
                             ImageVector.vectorResource(id = R.drawable.visibility)
@@ -260,7 +266,7 @@ fun LoginTextField(
 @Preview
 fun LoginPreview() {
     LoginScreen(
-        navigateBack = {  },
-        navigateToWaffles = {  }
+        navigateBack = { },
+        navigateToWaffles = { }
     )
 }

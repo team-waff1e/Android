@@ -54,6 +54,9 @@ class ProfileViewModel @Inject constructor(
     }
 
     suspend fun getMyWaffleList(isUpdate: Boolean) {
+        // TODO. 임시 MemberId
+        val memberId = 1L
+
         val responseResult: Response<WaffleListSuccessResponse>? = if (isUpdate) {
             waffleRepository.requestWaffleList(LIMIT, true, null)
         } else if (idx.value != null) {
@@ -62,21 +65,29 @@ class ProfileViewModel @Inject constructor(
             null
         }
 
+//        val responseResult: Response<WaffleListSuccessResponse>? = if (isUpdate) {
+//            waffleRepository.requestWaffleListByMemberId(memberId, LIMIT, true, null)
+//        } else if (idx.value != null) {
+//            waffleRepository.requestWaffleListByMemberId(memberId, LIMIT, false, idx.value)
+//        } else {
+//            null
+//        }
+
         if (responseResult != null && responseResult.isSuccessful) {
             myWaffleListUiState = if (isUpdate) {
-                myWaffleListUiState.copy(waffleList = responseResult.body()!!.list)
+                myWaffleListUiState.copy(waffleList = responseResult.body()!!.contents)
             } else {
                 // TODO. 무한 스크롤 시연을 위해 아래 코드 주석 처리, 실제로는 MutableSet 사용 필요
 //                val newSet = waffleListUiState.value.waffleList.toMutableSet()
 //                newSet.addAll(responseResult.body()!!.list)
 //                val newList = newSet.sortedByDescending { it.updatedAt }
                 val newList = myWaffleListUiState.waffleList.toMutableList()
-                newList.addAll(responseResult.body()!!.list)
+                newList.addAll(responseResult.body()!!.contents)
                 newList.sortedByDescending { it.updatedAt }
                 myWaffleListUiState.copy(waffleList = newList)
             }
 
-            idx.value = myWaffleListUiState.waffleList.last().id
+            idx.value = responseResult.body()!!.lastIdx
         } else if (responseResult != null) {
             val body = Json.decodeFromString<WaffleListFailResponse>(
                 responseResult.errorBody()?.string()!!
@@ -93,5 +104,21 @@ class ProfileViewModel @Inject constructor(
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         memberRepository.updateMyProfileImage(body)
+    }
+
+    suspend fun requestWaffleLike(id: Long) {
+        // TODO. 포스트맨으로만 테스트하면 에러남
+//        val idx = waffleListUiState.waffleList.indexOfFirst { it.id == id }
+//        val responseResult = waffleRepository.likeWaffle(id)
+//
+//        if (responseResult.isSuccessful) {
+//            val waffle = responseResult.body()!!
+//            waffleListUiState.waffleList[idx] = waffle
+//        } else {
+//            val body = Json.decodeFromString<WaffleListFailResponse>(
+//                responseResult.errorBody()?.string()!!
+//            )
+//            waffleListUiState = waffleListUiState.copy(errorCode = body.errorCode)
+//        }
     }
 }

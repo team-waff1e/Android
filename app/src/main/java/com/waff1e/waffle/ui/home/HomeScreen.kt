@@ -1,5 +1,6 @@
 package com.waff1e.waffle.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,9 @@ fun HomeScreen(
         }
     ) { innerPadding ->
         HomeBody(
-            modifier = modifier.padding(innerPadding),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             onLoginBtnClicked = navigateToLogin,
             onSignupBtnClicked = navigateToSignup,
         )
@@ -69,7 +72,6 @@ fun HomeBody(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
             .padding(20.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

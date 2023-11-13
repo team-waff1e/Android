@@ -18,6 +18,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +40,12 @@ import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.clickableSingle
 import com.waff1e.waffle.waffle.dto.Waffle
+import com.waff1e.waffle.waffle.dto.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.LoadingWaffle
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListCard
+import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import java.time.LocalDateTime
@@ -52,7 +60,11 @@ fun WaffleScreen(
     canNavigationBack: Boolean = true,
     navigateBack: () -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
+        modifier = modifier
+            .background(Color.Transparent),
         topBar = {
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,
@@ -62,8 +74,16 @@ fun WaffleScreen(
     ) { innerPadding ->
         WaffleBody(
             modifier = modifier
+                .fillMaxSize()
                 .padding(innerPadding),
-            waffleUiState = { viewModel.waffleUiState }
+            waffleUiState = { viewModel.waffleUiState },
+            onLikeBtnClicked = { id ->
+                viewModel.waffleUiState.waffle?.updateLikes()
+
+                coroutineScope.launch {
+                    viewModel.requestWaffleLike(id)
+                }
+            }
         )
     }
 }
@@ -71,13 +91,13 @@ fun WaffleScreen(
 @Composable
 fun WaffleBody(
     modifier: Modifier = Modifier,
-    waffleUiState: () -> WaffleUiState
+    waffleUiState: () -> WaffleUiState,
+    onLikeBtnClicked: (Long) -> Unit
 ) {
     val waffle = waffleUiState()
 
     Column(
         modifier = modifier
-            .fillMaxSize()
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
@@ -86,6 +106,7 @@ fun WaffleBody(
         } else if (waffle.waffle != null) {
             WaffleCard(
                 item = waffle.waffle,
+                onLikeBtnClicked = onLikeBtnClicked
             )
         } else {
             // TODO. 응답 오류 처리 필요
@@ -100,7 +121,12 @@ fun WaffleBody(
 fun WaffleCard(
     modifier: Modifier = Modifier,
     item: Waffle,
+    onLikeBtnClicked: (Long) -> Unit
 ) {
+    var isLike by remember {
+        mutableStateOf(item.liked)
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -136,7 +162,7 @@ fun WaffleCard(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            text = item.member.nickname!!,
+                            text = item.owner.nickname!!,
                             style = Typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -156,7 +182,8 @@ fun WaffleCard(
 
                         Text(
                             text = dateString,
-                            color = Color.Gray
+                            color = Color.Gray,
+                            style = Typography.bodyMedium
                         )
                     }
 
@@ -195,24 +222,31 @@ fun WaffleCard(
             )
 
             Text(
-                text = item.comments.toString(),
+                text = item.commentCount.toString(),
                 style = Typography.bodyMedium
             )
         }
 
         Row(
+            modifier = Modifier
+                .clickableSingle {
+                    isLike = !isLike
+                    onLikeBtnClicked(item.id)
+                },
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(
                 modifier = Modifier
                     .size(20.dp),
-                imageVector = ImageVector.vectorResource(id = R.drawable.favorite),
+                imageVector = ImageVector.vectorResource(id =
+                    if (isLike) R.drawable.favorite else R.drawable.empty_favorite
+                ),
                 contentDescription = stringResource(id = R.string.likes_cnt),
                 tint = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
-                text = item.likes.toString(),
+                text = item.likesCount.toString(),
                 style = Typography.bodyMedium
             )
         }
@@ -231,17 +265,18 @@ fun WaffleCardPreview(
         content = "내용입니다1",
         createdAt = LocalDateTime.now().toKotlinLocalDateTime(),
         updatedAt = LocalDateTime.now().toKotlinLocalDateTime(),
-        likes = 1000,
-        comments = 100,
-        member = Member(
+        likesCount = 1000,
+        commentCount = 100,
+        owner = Member(
             nickname = "테스트 유저1",
             profileUrl = "프로필 URL1",
         ),
-        isLike = false,
+        liked = false,
     )
 
     WaffleListCard(
         item = waffle,
-        onItemClick = {}
+        onItemClick = {},
+        onLikeClick = {}
     )
 }

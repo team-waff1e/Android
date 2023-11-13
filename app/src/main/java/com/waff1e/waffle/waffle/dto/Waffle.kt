@@ -14,8 +14,13 @@ data class Waffle(
     val createdAt: LocalDateTime,
     @Serializable(with = LocalDateTimeIso8601Serializer::class)
     val updatedAt: LocalDateTime,
-    val likes: Long,
-    val comments: Long, // TODO. 댓글 수를 담은 변수 (임시!!!!)
-    @SerialName("Member") val member: Member,
-    val isLike: Boolean,
+    var likesCount: Long,
+    val commentCount: Long, // TODO. 댓글 수를 담은 변수 (임시!!!!)
+    @SerialName("owner") val owner: Member,
+    var liked: Boolean,
 )
+
+fun Waffle.updateLikes() {
+    if (this.liked) likesCount-- else likesCount++
+    liked = !liked
+}

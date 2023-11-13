@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -54,6 +55,8 @@ fun ProfileDetailScreen(
     navigateBack: () -> Unit,
 ) {
     Scaffold(
+        modifier = modifier
+            .background(Color.Transparent),
         topBar = {
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,
@@ -64,6 +67,7 @@ fun ProfileDetailScreen(
     ) { innerPadding ->
         ProfileDetailBody(
             modifier = modifier
+                .fillMaxSize()
                 .padding(innerPadding),
             myProfile = { viewModel.myProfile }
         )
@@ -77,7 +81,6 @@ fun ProfileDetailBody(
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(40.dp)
     ) {
