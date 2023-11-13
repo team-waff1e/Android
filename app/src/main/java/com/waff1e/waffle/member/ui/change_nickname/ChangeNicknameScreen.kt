@@ -3,6 +3,7 @@ package com.waff1e.waffle.member.ui.change_nickname
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -59,15 +61,20 @@ fun ChangeNicknameScreen(
     val coroutineScope = rememberCoroutineScope()
     var isProgress by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = {
-        WaffleTopAppBar(
-            hasNavigationIcon = canNavigateBack,
-            navigationIconClicked = navigateBack,
-            title = stringResource(id = R.string.change_nickname_btn)
-        )
-    }) { innerPadding ->
+    Scaffold(
+        modifier = modifier
+            .background(Color.Transparent),
+        topBar = {
+            WaffleTopAppBar(
+                hasNavigationIcon = canNavigateBack,
+                navigationIconClicked = navigateBack,
+                title = stringResource(id = R.string.change_nickname_btn)
+            )
+        }
+    ) { innerPadding ->
         ChangeNicknameBody(
             modifier = modifier
+                .fillMaxSize()
                 .padding(innerPadding),
             navigateBack = navigateBack,
             changeNicknameUiState = viewModel.changeNicknameUiState,
@@ -134,7 +141,6 @@ fun ChangeNicknameBody(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
             .padding(25.dp)
             .onFocusChanged { isFocused = it.hasFocus },
         verticalArrangement = Arrangement.spacedBy(10.dp),

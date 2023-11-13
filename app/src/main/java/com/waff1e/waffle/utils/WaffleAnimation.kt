@@ -14,46 +14,48 @@ import androidx.navigation.NavBackStackEntry
 
 object WaffleAnimation {
     private const val scale = 0.85f
-    private const val tweenDuration = 500
+    private const val tweenDuration = 300
+
+    private const val springStiffness = Spring.StiffnessMediumLow
 
     val fadeIn: (@JvmSuppressWildcards AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) = {
         scaleIn(
-            animationSpec = spring(stiffness = Spring.StiffnessLow),
+            animationSpec = spring(stiffness = springStiffness),
             initialScale = scale
-        ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow))
+        ) + fadeIn(animationSpec = spring(stiffness = springStiffness))
     }
 
     val fadeOut: (@JvmSuppressWildcards AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) = {
         scaleOut(
-            animationSpec = spring(stiffness = Spring.StiffnessLow),
+            animationSpec = spring(stiffness = springStiffness),
             targetScale = scale
-        ) + fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow))
+        ) + fadeOut(animationSpec = spring(stiffness = springStiffness))
     }
 
     val slideInLeft: (@JvmSuppressWildcards AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?) = {
         slideIntoContainer(
-            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+            towards = AnimatedContentTransitionScope.SlideDirection.Left,
             animationSpec = tween(tweenDuration)
         )
     }
 
     val slideInUp: (@JvmSuppressWildcards AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?) = {
         slideIntoContainer(
-            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Up,
+            towards = AnimatedContentTransitionScope.SlideDirection.Up,
             animationSpec = tween(tweenDuration)
         )
     }
 
     val slideOutRight: (@JvmSuppressWildcards AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?) = {
         slideOutOfContainer(
-            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+            towards = AnimatedContentTransitionScope.SlideDirection.Right,
             animationSpec = tween(tweenDuration)
         )
     }
 
     val slideOutDown: (@JvmSuppressWildcards AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?) = {
         slideOutOfContainer(
-            towards = AnimatedContentTransitionScope.SlideDirection.Companion.Down,
+            towards = AnimatedContentTransitionScope.SlideDirection.Down,
             animationSpec = tween(tweenDuration)
         )
     }

@@ -29,16 +29,31 @@ class WaffleViewModel @Inject constructor(
     }
 
     private suspend fun getWaffle() {
-        val responseResult = waffleRepository.requestWaffle(waffleId)
+        val responseWaffleResult = waffleRepository.requestWaffle(waffleId)
 
-        waffleUiState = if (responseResult.isSuccessful) {
+        waffleUiState = if (responseWaffleResult.isSuccessful) {
             waffleUiState.copy(
-                waffle = responseResult.body()!!.waffle,
-                commentList = responseResult.body()!!.commentList
+                waffle = responseWaffleResult.body()!!,
             )
         } else {
-            val body = Json.decodeFromString<DefaultResponse>(responseResult.errorBody()?.string()!!)
+            val body = Json.decodeFromString<DefaultResponse>(responseWaffleResult.errorBody()?.string()!!)
             waffleUiState.copy(errorCode = body.errorCode)
         }
+    }
+
+    suspend fun requestWaffleLike(id: Long) {
+        // TODO. 포스트맨으로만 테스트하면 에러남
+//        val idx = waffleListUiState.waffleList.indexOfFirst { it.id == id }
+//        val responseResult = waffleRepository.likeWaffle(id)
+//
+//        if (responseResult.isSuccessful) {
+//            val waffle = responseResult.body()!!
+//            waffleListUiState.waffleList[idx] = waffle
+//        } else {
+//            val body = Json.decodeFromString<WaffleListFailResponse>(
+//                responseResult.errorBody()?.string()!!
+//            )
+//            waffleListUiState = waffleListUiState.copy(errorCode = body.errorCode)
+//        }
     }
 }

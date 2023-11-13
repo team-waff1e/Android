@@ -70,7 +70,9 @@ fun WaffleNavHost(
         composable(
             route = Login.route,
             enterTransition = slideInLeft,
-            popExitTransition = slideOutRight
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight,
+            popEnterTransition = fadeIn,
         ) {
             LoginScreen(
                 navigateBack = {
@@ -89,7 +91,8 @@ fun WaffleNavHost(
             route = Signup.route,
             enterTransition = slideInLeft,
             exitTransition = slideOutRight,
-            popExitTransition = slideOutRight
+            popExitTransition = slideOutRight,
+            popEnterTransition = fadeIn,
         ) {
             SignupScreen(
                 navigateBack = {
@@ -135,7 +138,9 @@ fun WaffleNavHost(
             route = "${Waffle.route}/{${Waffle.waffleArg}}",
             arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType }),
             enterTransition = slideInLeft,
-            popExitTransition = slideOutRight
+            exitTransition = fadeOut,
+            popExitTransition = slideOutRight,
+            popEnterTransition = fadeIn,
         ) {
             WaffleScreen(
                 navigateBack = {
@@ -150,10 +155,10 @@ fun WaffleNavHost(
         // PostWaffle (게시글 작성)
         composable(
             route = PostWaffle.route,
-            enterTransition = slideInUp,
-            exitTransition = slideOutDown,
-            popEnterTransition = slideInUp,
-            popExitTransition = slideOutDown
+            enterTransition = slideInLeft,
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight,
+            popEnterTransition = slideInLeft,
         ) {
             PostWaffleScreen(
                 navigateBack = { navController.popBackStack() },
@@ -169,9 +174,9 @@ fun WaffleNavHost(
         composable(
             route = Profile.route,
             enterTransition = slideInLeft,
-            popEnterTransition = fadeIn,
             exitTransition = fadeOut,
             popExitTransition = slideOutRight,
+            popEnterTransition = fadeIn,
         ) {
             ProfileScreen(
                 navigateBack = {
@@ -198,9 +203,9 @@ fun WaffleNavHost(
         composable(
             route = EditProfile.route,
             enterTransition = slideInLeft,
-            popEnterTransition = fadeIn,
             exitTransition = fadeOut,
             popExitTransition = slideOutRight,
+            popEnterTransition = fadeIn,
         ) {
             EditProfileScreen(
                 navigateBack = {
@@ -237,8 +242,8 @@ fun WaffleNavHost(
         composable(
             route = ProfileDetail.route,
             enterTransition = slideInLeft,
-            popEnterTransition = fadeIn,
-            exitTransition = fadeOut,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
             popExitTransition = slideOutRight,
         ) {
             ProfileDetailScreen(
@@ -255,8 +260,8 @@ fun WaffleNavHost(
         composable(
             route = ChangePassword.route,
             enterTransition = slideInLeft,
-            popEnterTransition = fadeIn,
-            exitTransition = fadeOut,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
             popExitTransition = slideOutRight,
         ) {
             ChangePasswordScreen(
@@ -273,8 +278,8 @@ fun WaffleNavHost(
         composable(
             route = ChangeNickname.route,
             enterTransition = slideInLeft,
-            popEnterTransition = fadeIn,
-            exitTransition = fadeOut,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
             popExitTransition = slideOutRight,
         ) {
             ChangeNicknameScreen(

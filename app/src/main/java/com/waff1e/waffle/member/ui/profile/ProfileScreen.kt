@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -50,6 +51,7 @@ import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TabItem
 import com.waff1e.waffle.utils.TopAppbarType
+import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
 import com.waff1e.waffle.waffle.ui.waffles.WafflesBody
@@ -96,6 +98,8 @@ fun ProfileScreen(
     }
 
     Scaffold(
+        modifier = modifier
+            .background(Color.Transparent),
         topBar = {
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,
@@ -117,12 +121,21 @@ fun ProfileScreen(
         }
     ) { innerPadding ->
         ProfileBody(
-            modifier = modifier.padding(innerPadding),
+            modifier = modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             myProfile = { viewModel.myProfile },
             getMyWaffleList = viewModel::getMyWaffleList,
             myWaffleListUiState = { viewModel.myWaffleListUiState },
             onWaffleClick = navigateToWaffle,
             nestedScrollConnection = nestedScrollConnection,
+            onLikeBtnClicked = { id ->
+                viewModel.myWaffleListUiState.waffleList.updateLikes(id)
+
+                coroutineScope.launch {
+                    viewModel.requestWaffleLike(id)
+                }
+            }
         )
     }
 }
@@ -135,10 +148,10 @@ fun ProfileBody(
     getMyWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
+    onLikeBtnClicked: suspend (Long) -> Unit
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -177,6 +190,7 @@ fun ProfileBody(
             getMyWaffleList = getMyWaffleList,
             onWaffleClick = onWaffleClick,
             nestedScrollConnection = nestedScrollConnection,
+            onLikeBtnClicked = onLikeBtnClicked
         )
     }
 }
@@ -189,6 +203,7 @@ fun ProfileTab(
     getMyWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
+    onLikeBtnClicked: suspend (Long) -> Unit
 ) {
     val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Media, TabItem.Like)
     var selectedTabIdx by remember { mutableIntStateOf(0) }
@@ -248,7 +263,12 @@ fun ProfileTab(
                         onWaffleClick = { onWaffleClick(it.id) },
                         list = myWaffleListUiState().waffleList,
                         getWaffleList = getMyWaffleList,
-                        nestedScrollConnection = nestedScrollConnection
+                        nestedScrollConnection = nestedScrollConnection,
+                        onLikeBtnClicked = {
+                            coroutineScope.launch {
+                                onLikeBtnClicked(it)
+                            }
+                        }
                     )
                 }
 

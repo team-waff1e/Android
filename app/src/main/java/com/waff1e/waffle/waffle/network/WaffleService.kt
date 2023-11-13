@@ -4,7 +4,6 @@ import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.waffle.dto.PostWaffleRequest
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
 import com.waff1e.waffle.waffle.dto.Waffle
-import com.waff1e.waffle.waffle.dto.WaffleResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -16,13 +15,25 @@ interface WaffleService {
     @GET("waffles")
     suspend fun getWaffleList(
         @Query("limit") limit: Int,
-        @Query("isUpdate") isUpdate: Boolean,
         @Query("idx") idx: Long?
     ): Response<WaffleListSuccessResponse>
 
-    @GET("waffles/{id}")
-    suspend fun getWaffle(@Path("id") id: Long): Response<WaffleResponse>
+    @GET("waffles/{memberId}")
+    suspend fun getWaffleListByMemberId(
+        @Path("memberId") memberId: Long,
+        @Query("limit") limit: Int,
+        @Query("idx") idx: Long?
+    ): Response<WaffleListSuccessResponse>
+
+    @GET("waffles/{waffleId}")
+    suspend fun getWaffle(@Path("waffleId") id: Long): Response<Waffle>
 
     @POST("waffles")
     suspend fun postWaffle(@Body postWaffleRequest: PostWaffleRequest): Response<DefaultResponse>
+
+    @POST("waffles/{waffleId}/like")
+    suspend fun likeWaffle(@Path("waffleId") id: Long): Response<Waffle>
+
+    @POST("waffles/{waffleId}/unlike")
+    suspend fun unlikeWaffle(@Path("waffleId") id: Long): Response<Waffle>
 }

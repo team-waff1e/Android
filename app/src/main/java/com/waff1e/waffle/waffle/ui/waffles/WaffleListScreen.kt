@@ -1,6 +1,7 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -13,10 +14,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,6 +58,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,12 +78,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
+import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
+import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.dto.Waffle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -198,6 +204,13 @@ fun WaffleListScreen(
                 list = viewModel.waffleListUiState.waffleList,
                 getWaffleList = viewModel::getWaffleList,
                 nestedScrollConnection = nestedScrollConnection,
+                onLikeBtnClicked = { id ->
+                    viewModel.waffleListUiState.waffleList.updateLikes(id)
+
+                    coroutineScope.launch {
+                        viewModel.requestWaffleLike(id)
+                    }
+                }
             )
         }
     }
@@ -208,9 +221,10 @@ fun WaffleListScreen(
 fun WafflesBody(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
-    list: List<Waffle>,
+    list: MutableList<Waffle>,
     getWaffleList: suspend (Boolean) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
+    onLikeBtnClicked: (Long) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -236,7 +250,8 @@ fun WafflesBody(
             onWaffleClick = onWaffleClick,
             list = list,
             nestedScrollConnection = nestedScrollConnection,
-            getWaffleList = getWaffleList
+            getWaffleList = getWaffleList,
+            onLikeBtnClicked = onLikeBtnClicked
         )
 
         PullRefreshIndicator(
@@ -251,9 +266,10 @@ fun WafflesBody(
 fun WaffleListLazyColumn(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
-    list: List<Waffle>,
+    list: MutableList<Waffle>,
     nestedScrollConnection: NestedScrollConnection,
     getWaffleList: suspend (Boolean) -> Unit,
+    onLikeBtnClicked: (Long) -> Unit,
 ) {
     var isInitializing by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
@@ -285,7 +301,7 @@ fun WaffleListLazyColumn(
             state = lazyListState,
         ) {
             if (isInitializing) {
-                items(20) {
+                items(LIMIT) {
                     LoadingWaffle()
                 }
             } else {
@@ -297,7 +313,10 @@ fun WaffleListLazyColumn(
                 ) { _, item ->
                     WaffleListCard(
                         item = item,
-                        onItemClick = onWaffleClick
+                        onItemClick = onWaffleClick,
+                        onLikeClick = {
+                            onLikeBtnClicked(it)
+                        }
                     )
 
                     Box(modifier = Modifier.size(10.dp))
@@ -323,11 +342,15 @@ fun WaffleListCard(
     modifier: Modifier = Modifier,
     item: Waffle,
     onItemClick: (Waffle) -> Unit,
+    onLikeClick: (Long) -> Unit,
 ) {
+    var isLike by remember {
+        mutableStateOf(item.liked)
+    }
+
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .clickableSingle { onItemClick(item) },
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Row(
@@ -350,54 +373,62 @@ fun WaffleListCard(
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .clickableSingle { onItemClick(item) },
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = item.member.nickname!!,
-                            style = Typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.owner.nickname!!,
+                                style = Typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
 
-                        // TODO. 시간, 일, 주, 달 순으로 디테일하게 변경하도록 추가
-                        val diff = ChronoUnit.HOURS.between(
-                            item.createdAt.toJavaLocalDateTime(),
-                            LocalDateTime.now()
-                        )
+                            // TODO. 시간, 일, 주, 달 순으로 디테일하게 변경하도록 추가
+                            val diff = ChronoUnit.HOURS.between(
+                                item.createdAt.toJavaLocalDateTime(),
+                                LocalDateTime.now()
+                            )
 
-                        val dateString = if (diff >= 24) {
-                            item.createdAt.toJavaLocalDateTime()
-                                .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-                        } else {
-                            "${diff}h"
+                            val dateString = if (diff >= 24) {
+                                item.createdAt.toJavaLocalDateTime()
+                                    .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                            } else {
+                                "${diff}h"
+                            }
+
+                            Text(
+                                text = dateString,
+                                color = Color.Gray,
+                                style = Typography.bodyMedium,
+                            )
                         }
 
-                        Text(
-                            text = dateString,
-                            color = Color.Gray
+                        Spacer(modifier = modifier.weight(1f))
+
+                        Icon(
+                            modifier = Modifier
+                                .size(20.dp),
+                            imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
+                            contentDescription = stringResource(id = R.string.waffle_option),
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
-                    Icon(
-                        modifier = Modifier
-                            .size(20.dp),
-                        imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
-                        contentDescription = stringResource(id = R.string.waffle_option),
-                        tint = MaterialTheme.colorScheme.onBackground
+                    Text(
+                        text = item.content,
+                        style = Typography.bodyMedium
                     )
                 }
-
-                Text(
-                    text = item.content,
-                    style = Typography.bodyMedium
-                )
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(40.dp)
@@ -414,24 +445,31 @@ fun WaffleListCard(
                         )
 
                         Text(
-                            text = item.comments.toString(),
+                            text = item.commentCount.toString(),
                             style = Typography.bodyMedium
                         )
                     }
 
                     Row(
+                        modifier = Modifier
+                            .clickableSingle {
+                                isLike = !isLike
+                                onLikeClick(item.id)
+                            },
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Icon(
                             modifier = Modifier
                                 .size(20.dp),
-                            imageVector = ImageVector.vectorResource(id = R.drawable.favorite),
+                            imageVector = ImageVector.vectorResource(
+                                id = if (isLike) R.drawable.favorite else R.drawable.empty_favorite
+                            ),
                             contentDescription = stringResource(id = R.string.likes_cnt),
                             tint = MaterialTheme.colorScheme.onBackground
                         )
 
                         Text(
-                            text = item.likes.toString(),
+                            text = item.likesCount.toString(),
                             style = Typography.bodyMedium
                         )
                     }

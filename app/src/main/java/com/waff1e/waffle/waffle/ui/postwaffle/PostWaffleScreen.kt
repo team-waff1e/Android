@@ -47,6 +47,8 @@ fun PostWaffleScreen(
     val enableAction = remember { derivedStateOf { viewModel.content.isNotBlank() } }
 
     Scaffold(
+        modifier = modifier
+            .background(Color.Transparent),
         topBar = {
             WaffleTopAppBar(
                 hasNavigationIcon = canNavigationBack,

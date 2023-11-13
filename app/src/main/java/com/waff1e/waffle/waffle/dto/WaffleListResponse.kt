@@ -4,7 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class WaffleListSuccessResponse(
-    val list: List<Waffle> = listOf(),
+    val contents: MutableList<Waffle> = mutableListOf(),
+    val lastIdx: Long,
+    val size: Int,
+    val last: Boolean,
 )
 
 @Serializable

@@ -251,5 +251,5 @@ fun Modifier.loadingEffect(): Modifier = composed {
 }
 
 fun LazyListState.isEnd(): Boolean {
-    return layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
+    return layoutInfo.visibleItemsInfo.firstOrNull()?.index != 0 && layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
 }
