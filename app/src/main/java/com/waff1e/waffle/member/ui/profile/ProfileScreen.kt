@@ -52,7 +52,7 @@ import com.waff1e.waffle.utils.TabItem
 import com.waff1e.waffle.utils.TopAppbarType
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
-import com.waff1e.waffle.waffle.ui.waffles.WafflesLazyColumn
+import com.waff1e.waffle.waffle.ui.waffles.WafflesBody
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -244,7 +244,7 @@ fun ProfileTab(
         ) { idx ->
             when (idx) {
                 0 -> {
-                    WafflesLazyColumn(
+                    WafflesBody(
                         onWaffleClick = { onWaffleClick(it.id) },
                         list = myWaffleListUiState().waffleList,
                         getWaffleList = getMyWaffleList,

@@ -13,7 +13,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -109,19 +108,21 @@ fun WaffleListScreen(
     val context = LocalContext.current
 
     // FAB 관련
-    var isFABVisible by remember { mutableStateOf(true) }
-    var isFABExpanded by remember { mutableStateOf(false) }
+    var isFABExpandedScrollUp by remember { mutableStateOf(false) }
+    val isFABExpanded by remember { derivedStateOf { isFABExpandedScrollUp } }
+    var isFABScrollUp by remember { mutableStateOf(true) }
+    val isFABVisible by remember { derivedStateOf { isFABScrollUp } }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 if (available.y < -1) {
                     coroutineScope.launch {
-                        isFABVisible = false
-                        isFABExpanded = false
+                        isFABScrollUp = false
+                        isFABExpandedScrollUp = false
                     }
                 }
                 if (available.y > 1)
-                    isFABVisible = true
+                    isFABScrollUp = true
                 return Offset.Zero
             }
         }
@@ -133,7 +134,7 @@ fun WaffleListScreen(
                 drawerState.apply { close() }
             }
         } else if (isFABExpanded) {
-            isFABExpanded = false
+            isFABExpandedScrollUp = false
         } else if (System.currentTimeMillis() - backWait >= 2000) {
             backWait = System.currentTimeMillis()
             Toast.makeText(
@@ -184,16 +185,17 @@ fun WaffleListScreen(
                 WaffleListFAB(
                     isFABVisible = { isFABVisible },
                     isFABExpanded = { isFABExpanded },
-                    changeFabExpandedState = { isFABExpanded = true },
+                    changeFabExpandedState = { isFABExpandedScrollUp = true },
                     navigateToPostWaffle = navigateToPostWaffle
                 )
             }
         ) { innerPadding ->
             WafflesBody(
                 modifier = modifier
-                    .padding(innerPadding),
-                onWaffleClick = navigateToWaffle,
-                waffleListUiState = { viewModel.waffleListUiState },
+                    .padding(innerPadding)
+                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                onWaffleClick = { navigateToWaffle(it.id) },
+                list = viewModel.waffleListUiState.waffleList,
                 getWaffleList = viewModel::getWaffleList,
                 nestedScrollConnection = nestedScrollConnection,
             )
@@ -201,27 +203,9 @@ fun WaffleListScreen(
     }
 }
 
-@Composable
-fun WafflesBody(
-    modifier: Modifier = Modifier,
-    onWaffleClick: (Long) -> Unit,
-    waffleListUiState: () -> WaffleListUiState,
-    getWaffleList: suspend (Boolean) -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
-) {
-    WafflesLazyColumn(
-        modifier = modifier
-            .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-        onWaffleClick = { onWaffleClick(it.id) },
-        list = waffleListUiState().waffleList,
-        getWaffleList = getWaffleList,
-        nestedScrollConnection = nestedScrollConnection,
-    )
-}
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun WafflesLazyColumn(
+fun WafflesBody(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
     list: List<Waffle>,
@@ -229,10 +213,7 @@ fun WafflesLazyColumn(
     nestedScrollConnection: NestedScrollConnection,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var isInitializing by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    val lazyListState = rememberLazyListState()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
@@ -244,12 +225,39 @@ fun WafflesLazyColumn(
         }
     )
 
-    LaunchedEffect(key1 = isInitializing, key2 = list) {
-        if (list.isNotEmpty()) {
-            isInitializing = false
-        }
-    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        WaffleListLazyColumn(
+            modifier = modifier,
+            onWaffleClick = onWaffleClick,
+            list = list,
+            nestedScrollConnection = nestedScrollConnection,
+            getWaffleList = getWaffleList
+        )
 
+        PullRefreshIndicator(
+            modifier = modifier,
+            refreshing = isRefreshing,
+            state = pullRefreshState
+        )
+    }
+}
+
+@Composable
+fun WaffleListLazyColumn(
+    modifier: Modifier = Modifier,
+    onWaffleClick: (Waffle) -> Unit,
+    list: List<Waffle>,
+    nestedScrollConnection: NestedScrollConnection,
+    getWaffleList: suspend (Boolean) -> Unit,
+) {
+    var isInitializing by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
     val isEnd by remember { derivedStateOf { lazyListState.isEnd() } }
 
     if (isEnd) {
@@ -262,12 +270,13 @@ fun WafflesLazyColumn(
         isLoading = false
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pullRefresh(pullRefreshState),
-        contentAlignment = Alignment.TopCenter
-    ) {
+    LaunchedEffect(key1 = isInitializing, key2 = list) {
+        if (list.isNotEmpty()) {
+            isInitializing = false
+        }
+    }
+
+    Box() {
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
@@ -297,12 +306,6 @@ fun WafflesLazyColumn(
                 }
             }
         }
-
-        PullRefreshIndicator(
-            modifier = modifier,
-            refreshing = isRefreshing,
-            state = pullRefreshState
-        )
 
         if (isLoading) {
             CircularProgressIndicator(

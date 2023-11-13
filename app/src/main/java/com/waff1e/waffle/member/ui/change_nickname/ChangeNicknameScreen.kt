@@ -183,7 +183,7 @@ fun ChangeNicknameBody(
                     modifier = Modifier
                         .size(20.dp)
                         .align(Alignment.Center)
-                        .alpha(if (isProgress()) 1f else 1f),
+                        .alpha(if (isProgress()) 1f else 0f),
                     color = MaterialTheme.colorScheme.onBackground,
                     strokeWidth = 3.dp
                 )
