@@ -1,5 +1,6 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,12 +10,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -34,9 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.comment.dto.Comment
+import com.waff1e.waffle.ui.PostWaffleButton
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.isEnd
@@ -91,11 +99,13 @@ fun WaffleScreen(
                 }
             },
             getCommentList = viewModel::getCommentList,
-            list = viewModel.waffleUiState.commentList
+            list = viewModel.waffleUiState.commentList,
+            navigateBack = navigateBack
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaffleBody(
     modifier: Modifier = Modifier,
@@ -103,12 +113,20 @@ fun WaffleBody(
     onLikeBtnClicked: (Long) -> Unit,
     list: List<Comment>,
     getCommentList: suspend () -> Unit,
+    navigateBack: () -> Unit
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     val waffle = waffleUiState()
     var isInitializing by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
     val lazyListState = rememberLazyListState()
     val isEnd by remember { derivedStateOf { lazyListState.isEnd() } }
+
+    BackHandler {
+        if (isFocused) focusManager.clearFocus() else navigateBack()
+    }
 
     if (isEnd) {
         LaunchedEffect(Unit) {
@@ -126,61 +144,94 @@ fun WaffleBody(
         }
     }
 
-    Box {
-        LazyColumn(
-            modifier = modifier
-                .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
+                .weight(1f)
         ) {
-            item {
-                if (waffle.waffle == null && waffle.errorCode == null) {
-                    LoadingWaffle()
-                } else if (waffle.waffle != null) {
-                    WaffleCard(
-                        item = waffle.waffle,
-                        onLikeBtnClicked = onLikeBtnClicked
-                    )
-                } else {
-                    // TODO. 응답 오류 처리 필요
-                    Text(text = "응답 오류")
-                }
-            }
-
-            if (isInitializing) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
                 item {
-                    Box(
-                        modifier = Modifier
-                        .fillMaxSize()
-                    ) {
-                        CircularProgressIndicator(
+                    if (waffle.waffle == null && waffle.errorCode == null) {
+                        LoadingWaffle()
+                    } else if (waffle.waffle != null) {
+                        WaffleCard(
+                            item = waffle.waffle,
+                            onLikeBtnClicked = onLikeBtnClicked
+                        )
+                    } else {
+                        // TODO. 응답 오류 처리 필요
+                        Text(text = "응답 오류")
+                    }
+                }
+
+                if (isInitializing) {
+                    item {
+                        Box(
                             modifier = Modifier
-                                .size(25.dp)
-                                .align(Alignment.Center),
-                            strokeWidth = 3.dp
+                                .fillMaxSize()
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .align(Alignment.Center),
+                                strokeWidth = 3.dp
+                            )
+                        }
+                    }
+                } else {
+                    itemsIndexed(
+                        items = list,
+                        key = { _, item ->
+                            item.id
+                        }
+                    ) { _, item ->
+                        CommentCard(
+                            item = item,
+                            onItemClick = { },
                         )
                     }
                 }
-            } else {
-                itemsIndexed(
-                    items = list,
-                    key = { _, item ->
-                        item.id
-                    }
-                ) { _, item ->
-                    CommentCard(
-                        item = item,
-                        onItemClick = { },
-                    )
-                }
+            }
+
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = modifier
+                        .size(25.dp)
+                        .align(Alignment.BottomCenter),
+                    strokeWidth = 3.dp
+                )
             }
         }
 
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = modifier
-                    .size(25.dp)
-                    .align(Alignment.BottomCenter),
-                strokeWidth = 3.dp
+        // TODO. 답글 다는 기능
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { isFocused = it.hasFocus },
+            value = "",
+            onValueChange = {  },
+            placeholder = {
+                Text(text = "답글 게시하기")
+            },
+            shape =  RoundedCornerShape(20.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = MaterialTheme.colorScheme.onBackground,
+                containerColor = MaterialTheme.colorScheme.background,
+            )
+        )
+
+        if (isFocused) {
+            PostWaffleButton(
+                onAction = {  },
+                enableAction = true,
+                text = "답글"
             )
         }
     }
@@ -341,7 +392,8 @@ fun CommentCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(10.dp)
+                .clickableSingle(disableRipple = true) { onItemClick(item) },
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -359,8 +411,7 @@ fun CommentCard(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .clickableSingle { onItemClick(item) },
+                    modifier = Modifier,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(

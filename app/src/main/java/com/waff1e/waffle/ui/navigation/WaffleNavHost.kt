@@ -1,5 +1,6 @@
 package com.waff1e.waffle.ui.navigation
 
+import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -41,10 +42,10 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @Composable
-fun WaffleNavHost (
+fun WaffleNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    loginUserPreference: LoginUserPreferenceModule
+    loginUserPreference: LoginUserPreferenceModule,
 ) {
     val jsessionid = runBlocking {
         loginUserPreference.jsessionidFlow.first()
@@ -115,7 +116,9 @@ fun WaffleNavHost (
         }
 
         // Waffles(리스트) 화면
-        composable(route = Waffles.route) {
+        composable(
+            route = Waffles.route
+        ) {
             WaffleListScreen(
                 navigateToWaffle = {
                     navController.navigate(route = "${Waffle.route}/${it}") {
@@ -170,7 +173,12 @@ fun WaffleNavHost (
             popEnterTransition = slideInLeft,
         ) {
             PostWaffleScreen(
-                navigateBack = { navController.popBackStack() },
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
                 navigateToWaffles = {
                     navController.navigate(route = Waffles.route) {
                         popUpTo(Home.route) { inclusive = false }

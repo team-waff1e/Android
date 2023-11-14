@@ -74,6 +74,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
@@ -361,7 +362,10 @@ fun WaffleListCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(10.dp)
+                .clickableSingle(disableRipple = true) {
+                    onItemClick(item)
+                },
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -379,8 +383,7 @@ fun WaffleListCard(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .clickableSingle { onItemClick(item) },
+                    modifier = Modifier,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
@@ -457,7 +460,7 @@ fun WaffleListCard(
 
                     Row(
                         modifier = Modifier
-                            .clickableSingle {
+                            .clickableSingle(disableRipple = true) {
                                 isLike = !isLike
                                 onLikeClick(item.id)
                             },

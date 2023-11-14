@@ -1,6 +1,7 @@
 package com.waff1e.waffle.ui
 
 import android.app.Activity
+import android.view.Window
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -62,7 +63,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun WaffleApp(
     navController: NavHostController = rememberNavController(),
-    loginUserPreference: LoginUserPreferenceModule
+    loginUserPreference: LoginUserPreferenceModule,
 ) {
     WaffleNavHost(
         navController = navController,
@@ -144,6 +145,7 @@ fun PostWaffleButton(
     modifier: Modifier = Modifier,
     onAction: () -> Unit,
     enableAction: Boolean,
+    text: String = stringResource(id = R.string.post_waffle),
 ) {
     var defenderDoubleClick by remember {
         mutableStateOf(true)
@@ -177,7 +179,7 @@ fun PostWaffleButton(
         Text(
             modifier = modifier
                 .padding(horizontal = 15.dp, vertical = 5.dp),
-            text = stringResource(id = R.string.post_waffle),
+            text = text,
             style = Typography.titleSmall,
         )
     }
