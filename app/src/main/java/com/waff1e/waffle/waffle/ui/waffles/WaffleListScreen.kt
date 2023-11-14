@@ -157,7 +157,12 @@ fun WaffleListScreen(
         drawerState = drawerState,
         drawerContent = {
             WaffleListDrawerSheet(
-                onLogoutClicked = navigateToHome,
+                onLogoutClicked = {
+                    coroutineScope.launch {
+                        viewModel.logout()
+                        navigateToHome()
+                    }
+                },
                 onProfileClicked = {
                     coroutineScope.launch {
                         navigateToProfile()
@@ -292,7 +297,7 @@ fun WaffleListLazyColumn(
         }
     }
 
-    Box() {
+    Box {
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()

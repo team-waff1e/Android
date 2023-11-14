@@ -1,23 +1,30 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.waff1e.waffle.comment.data.CommentRepository
+import com.waff1e.waffle.comment.dto.CommentListRequest
+import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.ui.navigation.NavigationDestination
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class WaffleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val waffleRepository: WaffleRepository
+    private val waffleRepository: WaffleRepository,
+    private val commentRepository: CommentRepository
 ) : ViewModel() {
     private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleArg])
     var waffleUiState by mutableStateOf(WaffleUiState())
@@ -25,6 +32,7 @@ class WaffleViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getWaffle()
+            getCommentList()
         }
     }
 
@@ -37,6 +45,21 @@ class WaffleViewModel @Inject constructor(
             )
         } else {
             val body = Json.decodeFromString<DefaultResponse>(responseWaffleResult.errorBody()?.string()!!)
+            waffleUiState.copy(errorCode = body.errorCode)
+        }
+    }
+
+    suspend fun getCommentList() {
+        val responseCommentListResult = commentRepository.getCommentList(waffleId, LIMIT)
+
+        waffleUiState = if (responseCommentListResult.isSuccessful) {
+            val newSet = waffleUiState.commentList.toMutableSet()
+            newSet.addAll(responseCommentListResult.body()!!)
+            val newList = newSet.sortedByDescending { it.updatedAt }.toMutableList()
+
+            waffleUiState.copy(commentList = newList)
+        } else {
+            val body = Json.decodeFromString<DefaultResponse>(responseCommentListResult.errorBody()?.string()!!)
             waffleUiState.copy(errorCode = body.errorCode)
         }
     }

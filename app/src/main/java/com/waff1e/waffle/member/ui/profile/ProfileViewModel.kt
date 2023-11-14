@@ -7,10 +7,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.di.LIMIT
+import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.member.data.MemberRepository
 import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.waffle.data.WaffleRepository
-import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +45,7 @@ class ProfileViewModel @Inject constructor(
         myProfile = if (responseResult.isSuccessful) {
             myProfile.copy(member = responseResult.body()!!)
         } else {
-            val body = Json.decodeFromString<WaffleListFailResponse>(
+            val body = Json.decodeFromString<DefaultResponse>(
                 responseResult.errorBody()?.string()!!
             )
 
@@ -54,24 +54,21 @@ class ProfileViewModel @Inject constructor(
     }
 
     suspend fun getMyWaffleList(isUpdate: Boolean) {
-        // TODO. 임시 MemberId
-        val memberId = 1L
-
-        val responseResult: Response<WaffleListSuccessResponse>? = if (isUpdate) {
-            waffleRepository.requestWaffleList(LIMIT, true, null)
-        } else if (idx.value != null) {
-            waffleRepository.requestWaffleList(LIMIT, false, idx.value)
-        } else {
-            null
-        }
-
 //        val responseResult: Response<WaffleListSuccessResponse>? = if (isUpdate) {
-//            waffleRepository.requestWaffleListByMemberId(memberId, LIMIT, true, null)
+//            waffleRepository.requestWaffleList(LIMIT, true, null)
 //        } else if (idx.value != null) {
-//            waffleRepository.requestWaffleListByMemberId(memberId, LIMIT, false, idx.value)
+//            waffleRepository.requestWaffleList(LIMIT, false, idx.value)
 //        } else {
 //            null
 //        }
+
+        val responseResult: Response<WaffleListSuccessResponse>? = if (isUpdate) {
+            waffleRepository.requestWaffleListByMemberId(null, LIMIT, true, null)
+        } else if (idx.value != null) {
+            waffleRepository.requestWaffleListByMemberId(null, LIMIT, false, idx.value)
+        } else {
+            null
+        }
 
         if (responseResult != null && responseResult.isSuccessful) {
             myWaffleListUiState = if (isUpdate) {
@@ -89,7 +86,7 @@ class ProfileViewModel @Inject constructor(
 
             idx.value = responseResult.body()!!.lastIdx
         } else if (responseResult != null) {
-            val body = Json.decodeFromString<WaffleListFailResponse>(
+            val body = Json.decodeFromString<DefaultResponse>(
                 responseResult.errorBody()?.string()!!
             )
             myWaffleListUiState = myWaffleListUiState.copy(errorCode = body.errorCode)

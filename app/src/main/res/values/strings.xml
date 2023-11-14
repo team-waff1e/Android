@@ -72,7 +72,6 @@
     <!-- TabItem Type 관련 -->
     <string name="tab_item_type_waffle">게시글</string>
     <string name="tab_item_type_comment">답글</string>
-    <string name="tab_item_type_media">미디어</string>
     <string name="tab_item_type_like">좋아요</string>
 
 </resources>

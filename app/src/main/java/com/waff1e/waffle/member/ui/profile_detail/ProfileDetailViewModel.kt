@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.member.data.MemberRepository
 import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.member.ui.profile.ProfileUiState
-import com.waff1e.waffle.waffle.dto.WaffleListFailResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -33,7 +33,7 @@ class ProfileDetailViewModel @Inject constructor(
         myProfile = if (responseResult.isSuccessful) {
             myProfile.copy(member = responseResult.body()!!)
         } else {
-            val body = Json.decodeFromString<WaffleListFailResponse>(
+            val body = Json.decodeFromString<DefaultResponse>(
                 responseResult.errorBody()?.string()!!
             )
 

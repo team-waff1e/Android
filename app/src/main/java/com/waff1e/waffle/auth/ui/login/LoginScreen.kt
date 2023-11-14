@@ -1,7 +1,7 @@
 package com.waff1e.waffle.auth.ui.login
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
+import com.waff1e.waffle.di.JSESSIONID
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import kotlinx.coroutines.delay
@@ -80,10 +81,14 @@ fun LoginScreen(
             onLoginBtnClicked = {
                 coroutineScope.launch {
                     val responseResult = viewModel.requestLogin()
+                    val jsessionid = responseResult.header[JSESSIONID]
 
                     if (responseResult.isSuccess) {
                         // TODO. 로그인 성공 처리
-                        navigateToWaffles()
+                        if (jsessionid != null) {
+                            viewModel.setJSESSIONID(jsessionid)
+                            navigateToWaffles()
+                        }
                     } else {
                         // TODO. 로그인 실패 처리
                     }

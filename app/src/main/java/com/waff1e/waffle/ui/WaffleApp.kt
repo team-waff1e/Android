@@ -53,14 +53,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
+import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.ui.navigation.WaffleNavHost
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TopAppbarType
 import kotlinx.coroutines.delay
 
 @Composable
-fun WaffleApp(navController: NavHostController = rememberNavController()) {
-    WaffleNavHost(navController)
+fun WaffleApp(
+    navController: NavHostController = rememberNavController(),
+    loginUserPreference: LoginUserPreferenceModule
+) {
+    WaffleNavHost(
+        navController = navController,
+        loginUserPreference = loginUserPreference,
+    )
 }
 
 @Composable

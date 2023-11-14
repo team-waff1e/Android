@@ -1,34 +1,28 @@
 package com.waff1e.waffle
 
-import android.app.Activity
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowCompat
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.ui.WaffleApp
 import com.waff1e.waffle.ui.theme.WaffleTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.json.JsonNull.content
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var loginUserPreference: LoginUserPreferenceModule
 
     companion object {
         var screenHeightDp = 0f
@@ -46,7 +40,9 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(colorScheme.background)
                 ) {
-                    WaffleApp()
+                    WaffleApp(
+                        loginUserPreference = loginUserPreference
+                    )
                 }
             }
         }
@@ -62,6 +58,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     WaffleTheme {
-        WaffleApp()
+        WaffleApp(
+            loginUserPreference = LoginUserPreferenceModule(LocalContext.current)
+        )
     }
 }

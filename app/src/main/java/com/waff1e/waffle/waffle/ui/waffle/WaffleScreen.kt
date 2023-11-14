@@ -3,21 +3,29 @@ package com.waff1e.waffle.waffle.ui.waffle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,22 +40,20 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
-import com.waff1e.waffle.member.dto.Member
+import com.waff1e.waffle.comment.dto.Comment
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
+import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
 import com.waff1e.waffle.waffle.dto.Waffle
 import com.waff1e.waffle.waffle.dto.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.LoadingWaffle
-import com.waff1e.waffle.waffle.ui.waffles.WaffleListCard
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -83,7 +89,9 @@ fun WaffleScreen(
                 coroutineScope.launch {
                     viewModel.requestWaffleLike(id)
                 }
-            }
+            },
+            getCommentList = viewModel::getCommentList,
+            list = viewModel.waffleUiState.commentList
         )
     }
 }
@@ -92,28 +100,89 @@ fun WaffleScreen(
 fun WaffleBody(
     modifier: Modifier = Modifier,
     waffleUiState: () -> WaffleUiState,
-    onLikeBtnClicked: (Long) -> Unit
+    onLikeBtnClicked: (Long) -> Unit,
+    list: List<Comment>,
+    getCommentList: suspend () -> Unit,
 ) {
     val waffle = waffleUiState()
+    var isInitializing by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
+    val lazyListState = rememberLazyListState()
+    val isEnd by remember { derivedStateOf { lazyListState.isEnd() } }
 
-    Column(
-        modifier = modifier
-            .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        if (waffle.waffle == null && waffle.errorCode == null) {
-            LoadingWaffle()
-        } else if (waffle.waffle != null) {
-            WaffleCard(
-                item = waffle.waffle,
-                onLikeBtnClicked = onLikeBtnClicked
-            )
-        } else {
-            // TODO. 응답 오류 처리 필요
-            Text(text = "응답오류")
+    if (isEnd) {
+        LaunchedEffect(Unit) {
+            isLoading = true
+            getCommentList()
+            isLoading = false
+        }
+    } else if (isLoading) { // 스크롤 하다가 갑자기 올리면 CircularProgressIndicator 사라지지 않는 문제 대응
+        isLoading = false
+    }
+
+    LaunchedEffect(key1 = isInitializing, key2 = list) {
+        if (list.isNotEmpty()) {
+            isInitializing = false
+        }
+    }
+
+    Box {
+        LazyColumn(
+            modifier = modifier
+                .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            item {
+                if (waffle.waffle == null && waffle.errorCode == null) {
+                    LoadingWaffle()
+                } else if (waffle.waffle != null) {
+                    WaffleCard(
+                        item = waffle.waffle,
+                        onLikeBtnClicked = onLikeBtnClicked
+                    )
+                } else {
+                    // TODO. 응답 오류 처리 필요
+                    Text(text = "응답 오류")
+                }
+            }
+
+            if (isInitializing) {
+                item {
+                    Box(
+                        modifier = Modifier
+                        .fillMaxSize()
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(25.dp)
+                                .align(Alignment.Center),
+                            strokeWidth = 3.dp
+                        )
+                    }
+                }
+            } else {
+                itemsIndexed(
+                    items = list,
+                    key = { _, item ->
+                        item.id
+                    }
+                ) { _, item ->
+                    CommentCard(
+                        item = item,
+                        onItemClick = { },
+                    )
+                }
+            }
         }
 
-        Text(text = "댓글은 아래에 표시할 예정")
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = modifier
+                    .size(25.dp)
+                    .align(Alignment.BottomCenter),
+                strokeWidth = 3.dp
+            )
+        }
     }
 }
 
@@ -204,7 +273,9 @@ fun WaffleCard(
         }
     }
 
+    Box(modifier = modifier.size(30.dp))
     WaffleDivider()
+    Box(modifier = modifier.size(20.dp))
 
     Row(
         modifier = Modifier.padding(horizontal = 10.dp),
@@ -252,31 +323,98 @@ fun WaffleCard(
         }
     }
 
+    Box(modifier = modifier.size(20.dp))
     WaffleDivider()
 }
 
-@Preview
 @Composable
-fun WaffleCardPreview(
+fun CommentCard(
     modifier: Modifier = Modifier,
+    item: Comment,
+    onItemClick: (Comment) -> Unit,
 ) {
-    val waffle = Waffle(
-        id = 1,
-        content = "내용입니다1",
-        createdAt = LocalDateTime.now().toKotlinLocalDateTime(),
-        updatedAt = LocalDateTime.now().toKotlinLocalDateTime(),
-        likesCount = 1000,
-        commentCount = 100,
-        owner = Member(
-            nickname = "테스트 유저1",
-            profileUrl = "프로필 URL1",
-        ),
-        liked = false,
-    )
+    Card(
+        modifier = modifier
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onBackground),
+                imageVector = ImageVector.vectorResource(id = R.drawable.person),
+                contentDescription = stringResource(id = R.string.profile_img),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
+            )
 
-    WaffleListCard(
-        item = waffle,
-        onItemClick = {},
-        onLikeClick = {}
-    )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .clickableSingle { onItemClick(item) },
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.member.nickname!!,
+                                style = Typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            // TODO. 시간, 일, 주, 달 순으로 디테일하게 변경하도록 추가
+                            val diff = ChronoUnit.HOURS.between(
+                                item.createdAt.toJavaLocalDateTime(),
+                                LocalDateTime.now()
+                            )
+
+                            val dateString = if (diff >= 24) {
+                                item.createdAt.toJavaLocalDateTime()
+                                    .format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                            } else {
+                                "${diff}h"
+                            }
+
+                            Text(
+                                text = dateString,
+                                color = Color.Gray,
+                                style = Typography.bodyMedium,
+                            )
+                        }
+
+                        Spacer(modifier = modifier.weight(1f))
+
+                        Icon(
+                            modifier = Modifier
+                                .size(20.dp),
+                            imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
+                            contentDescription = stringResource(id = R.string.waffle_option),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+
+                    Text(
+                        text = item.content,
+                        style = Typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
 }

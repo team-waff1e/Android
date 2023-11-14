@@ -18,9 +18,9 @@ interface WaffleService {
         @Query("idx") idx: Long?
     ): Response<WaffleListSuccessResponse>
 
-    @GET("waffles/{memberId}")
+    @GET("waffles/memberId")
     suspend fun getWaffleListByMemberId(
-        @Path("memberId") memberId: Long,
+        @Query("memberId") memberId: Long?,
         @Query("limit") limit: Int,
         @Query("idx") idx: Long?
     ): Response<WaffleListSuccessResponse>

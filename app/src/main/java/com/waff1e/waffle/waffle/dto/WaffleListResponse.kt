@@ -9,8 +9,3 @@ data class WaffleListSuccessResponse(
     val size: Int,
     val last: Boolean,
 )
-
-@Serializable
-data class WaffleListFailResponse(
-    val errorCode: Int
-)
