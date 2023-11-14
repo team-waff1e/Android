@@ -98,7 +98,12 @@ fun EditProfileScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             onProfileInfoClicked = navigateToProfileDetail,
-            onLogoutClicked = navigateToHome,
+            onLogoutClicked = {
+                coroutineScope.launch {
+                    viewModel.logout()
+                    navigateToHome()
+                }
+            },
             onChangePasswordClicked = navigateToChangePassword,
             onChangeNicknameClicked = navigateToChangeNickname,
             onDeleteMyProfileClicked = {

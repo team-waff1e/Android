@@ -1,5 +1,6 @@
 package com.waff1e.waffle.ui.navigation
 
+import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -9,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.member.ui.change_nickname.ChangeNicknameScreen
 import com.waff1e.waffle.member.ui.change_password.ChangePasswordScreen
 import com.waff1e.waffle.member.ui.edit_profile.EditProfileScreen
@@ -35,15 +37,23 @@ import com.waff1e.waffle.utils.WaffleAnimation.slideOutRight
 import com.waff1e.waffle.waffle.ui.postwaffle.PostWaffleScreen
 import com.waff1e.waffle.waffle.ui.waffle.WaffleScreen
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @Composable
 fun WaffleNavHost(
-    navController: NavHostController,
     modifier: Modifier = Modifier,
+    navController: NavHostController,
+    loginUserPreference: LoginUserPreferenceModule,
 ) {
+    val jsessionid = runBlocking {
+        loginUserPreference.jsessionidFlow.first()
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Waffles.route,
+        startDestination = if (jsessionid != null) Waffles.route else Home.route,
         modifier = modifier,
         enterTransition = fadeIn,
         exitTransition = fadeOut,
@@ -106,7 +116,9 @@ fun WaffleNavHost(
         }
 
         // Waffles(리스트) 화면
-        composable(route = Waffles.route) {
+        composable(
+            route = Waffles.route
+        ) {
             WaffleListScreen(
                 navigateToWaffle = {
                     navController.navigate(route = "${Waffle.route}/${it}") {
@@ -161,7 +173,12 @@ fun WaffleNavHost(
             popEnterTransition = slideInLeft,
         ) {
             PostWaffleScreen(
-                navigateBack = { navController.popBackStack() },
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
                 navigateToWaffles = {
                     navController.navigate(route = Waffles.route) {
                         popUpTo(Home.route) { inclusive = false }

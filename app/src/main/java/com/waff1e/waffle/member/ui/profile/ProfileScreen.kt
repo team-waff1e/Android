@@ -205,7 +205,7 @@ fun ProfileTab(
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit
 ) {
-    val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Media, TabItem.Like)
+    val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Like)
     var selectedTabIdx by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState { tabItems.size }
     val coroutineScope = rememberCoroutineScope()
@@ -232,7 +232,6 @@ fun ProfileTab(
                             text = when (type) {
                                 TabItem.Waffle -> stringResource(id = R.string.tab_item_type_waffle)
                                 TabItem.Comment -> stringResource(id = R.string.tab_item_type_comment)
-                                TabItem.Media -> stringResource(id = R.string.tab_item_type_media)
                                 TabItem.Like -> stringResource(id = R.string.tab_item_type_like)
                             },
                             fontWeight = if (idx == selectedTabIdx) FontWeight.Bold else FontWeight.Normal
@@ -277,10 +276,6 @@ fun ProfileTab(
                 }
 
                 2 -> {
-                    // TODO. 미디어 페이지 표시
-                }
-
-                3 -> {
                     // TODO. 좋아요 페이지 표시
                 }
             }

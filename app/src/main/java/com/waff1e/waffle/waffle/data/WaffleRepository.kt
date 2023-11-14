@@ -11,7 +11,7 @@ import javax.inject.Inject
 interface WaffleRepository {
     suspend fun requestWaffleList(limit: Int, isUpdate: Boolean, idx: Long?): Response<WaffleListSuccessResponse>
 
-    suspend fun requestWaffleListByMemberId(memberId: Long, limit: Int, isUpdate: Boolean, idx: Long?): Response<WaffleListSuccessResponse>
+    suspend fun requestWaffleListByMemberId(memberId: Long?, limit: Int, isUpdate: Boolean, idx: Long?): Response<WaffleListSuccessResponse>
 
     suspend fun requestWaffle(id: Long): Response<Waffle>
 
@@ -29,7 +29,7 @@ class DefaultWaffleRepository @Inject constructor(
         return waffleService.getWaffleList(limit, if (isUpdate) null else idx)
     }
 
-    override suspend fun requestWaffleListByMemberId(memberId: Long, limit: Int, isUpdate: Boolean, idx: Long?, ): Response<WaffleListSuccessResponse> {
+    override suspend fun requestWaffleListByMemberId(memberId: Long?, limit: Int, isUpdate: Boolean, idx: Long?, ): Response<WaffleListSuccessResponse> {
         return waffleService.getWaffleListByMemberId(memberId, limit, if (isUpdate) null else idx)
     }
 

@@ -1,8 +1,7 @@
 package com.waff1e.waffle.utils
 
 enum class TabItem {
-    Waffle(),
+    Waffle,
     Comment,
-    Media,
     Like
 }
