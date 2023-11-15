@@ -9,8 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.comment.data.CommentRepository
 import com.waff1e.waffle.comment.dto.CommentListRequest
+import com.waff1e.waffle.comment.dto.CommentRequest
 import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.dto.DefaultResponse
+import com.waff1e.waffle.dto.check
 import com.waff1e.waffle.ui.navigation.NavigationDestination
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,7 @@ class WaffleViewModel @Inject constructor(
 ) : ViewModel() {
     private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleArg])
     var waffleUiState by mutableStateOf(WaffleUiState())
+    var commentContent by mutableStateOf("")
 
     init {
         viewModelScope.launch {
@@ -61,6 +64,16 @@ class WaffleViewModel @Inject constructor(
         } else {
             val body = Json.decodeFromString<DefaultResponse>(responseCommentListResult.errorBody()?.string()!!)
             waffleUiState.copy(errorCode = body.errorCode)
+        }
+    }
+
+    suspend fun postComment() {
+        val responseResult = commentRepository.postComment(waffleId, CommentRequest(commentContent)).check()
+
+        if (responseResult.isSuccess) {
+            getCommentList()
+        } else {
+            waffleUiState.copy(errorCode = responseResult.body!!.errorCode)
         }
     }
 

@@ -6,10 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +35,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,12 +105,21 @@ fun WaffleScreen(
             },
             getCommentList = viewModel::getCommentList,
             list = viewModel.waffleUiState.commentList,
-            navigateBack = navigateBack
+            navigateBack = navigateBack,
+            commentContent = viewModel.commentContent,
+            onCommentChange = {
+                viewModel.commentContent = it
+            },
+            onPostCommentBtnClicked = {
+                coroutineScope.launch {
+                    viewModel.postComment()
+                    viewModel.commentContent = ""
+                }
+            }
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaffleBody(
     modifier: Modifier = Modifier,
@@ -113,7 +127,10 @@ fun WaffleBody(
     onLikeBtnClicked: (Long) -> Unit,
     list: List<Comment>,
     getCommentList: suspend () -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    commentContent: String,
+    onCommentChange: (String) -> Unit,
+    onPostCommentBtnClicked: () -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -147,7 +164,7 @@ fun WaffleBody(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .imePadding()
+            .imePadding(),
     ) {
         Box(
             modifier = Modifier
@@ -210,30 +227,17 @@ fun WaffleBody(
             }
         }
 
-        // TODO. 답글 다는 기능
-        TextField(
+        CommentTextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .onFocusChanged { isFocused = it.hasFocus },
-            value = "",
-            onValueChange = {  },
-            placeholder = {
-                Text(text = "답글 게시하기")
+                .padding(start = 10.dp, end = 10.dp, bottom = 5.dp),
+            isFocused = { isFocused },
+            changeFocus = { hasFocus ->
+                isFocused = hasFocus
             },
-            shape =  RoundedCornerShape(20.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = MaterialTheme.colorScheme.onBackground,
-                containerColor = MaterialTheme.colorScheme.background,
-            )
+            commentContent = commentContent,
+            onCommentChange = onCommentChange,
+            onPostCommentBtnClicked = onPostCommentBtnClicked
         )
-
-        if (isFocused) {
-            PostWaffleButton(
-                onAction = {  },
-                enableAction = true,
-                text = "답글"
-            )
-        }
     }
 }
 
@@ -241,7 +245,7 @@ fun WaffleBody(
 fun WaffleCard(
     modifier: Modifier = Modifier,
     item: Waffle,
-    onLikeBtnClicked: (Long) -> Unit
+    onLikeBtnClicked: (Long) -> Unit,
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -360,7 +364,8 @@ fun WaffleCard(
             Icon(
                 modifier = Modifier
                     .size(20.dp),
-                imageVector = ImageVector.vectorResource(id =
+                imageVector = ImageVector.vectorResource(
+                    id =
                     if (isLike) R.drawable.favorite else R.drawable.empty_favorite
                 ),
                 contentDescription = stringResource(id = R.string.likes_cnt),
@@ -399,7 +404,7 @@ fun CommentCard(
         ) {
             Image(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onBackground),
                 imageVector = ImageVector.vectorResource(id = R.drawable.person),
@@ -465,6 +470,69 @@ fun CommentCard(
                         style = Typography.bodyMedium
                     )
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CommentTextField(
+    modifier: Modifier = Modifier,
+    isFocused: () -> Boolean,
+    changeFocus: (Boolean) -> Unit,
+    commentContent: String,
+    onCommentChange: (String) -> Unit,
+    onPostCommentBtnClicked: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .height(IntrinsicSize.Min),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        // TODO. 답글 다는 기능
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { changeFocus(it.hasFocus) },
+            value = commentContent,
+            onValueChange = {
+                onCommentChange(it)
+            },
+            placeholder = {
+                Text(
+                    text = stringResource(id = R.string.post_comment),
+                    style = Typography.titleSmall
+                )
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = MaterialTheme.colorScheme.onBackground,
+                containerColor = MaterialTheme.colorScheme.background,
+            ),
+            textStyle = Typography.titleSmall
+        )
+
+        if (isFocused()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(start = 10.dp),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.image),
+                    contentDescription = stringResource(id = R.string.add_image),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+
+                PostWaffleButton(
+                    onAction = onPostCommentBtnClicked,
+                    enableAction = commentContent.isNotBlank(),
+                    text = "답글"
+                )
             }
         }
     }

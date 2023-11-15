@@ -17,7 +17,6 @@ data class ResponseResult(
 fun Response<DefaultResponse>.check(): ResponseResult {
     val responseResult = ResponseResult(isSuccess = isSuccessful, statusCode = code())
 
-    Log.d("로그", "Response<DefaultResponse>.check() 호출됨 - ${headers()}")
     val jsessionid = headers()[JSESSIONID]
 
     if (jsessionid != null) {
