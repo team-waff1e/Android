@@ -41,6 +41,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.bumptech.glide.integration.compose.placeholder
 import com.waff1e.waffle.R
+import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.member.ui.profile.ProfileUiState
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
@@ -50,7 +51,6 @@ import com.waff1e.waffle.utils.clickableSingle
 @Composable
 fun ProfileDetailScreen(
     modifier: Modifier = Modifier,
-    viewModel: ProfileDetailViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     navigateBack: () -> Unit,
 ) {
@@ -69,7 +69,6 @@ fun ProfileDetailScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            myProfile = { viewModel.myProfile }
         )
     }
 }
@@ -77,7 +76,6 @@ fun ProfileDetailScreen(
 @Composable
 fun ProfileDetailBody(
     modifier: Modifier = Modifier,
-    myProfile: () -> ProfileUiState,
 ) {
     Column(
         modifier = modifier
@@ -85,17 +83,17 @@ fun ProfileDetailBody(
         verticalArrangement = Arrangement.spacedBy(40.dp)
     ) {
         ProfileDetailProfileImage(
-            imgURL = myProfile().member?.profileUrl ?: ""
+            imgURL = LoginUser.profileUrl!!
         )
 
         ProfileDetailItem(
-            title = stringResource(id = R.string.user_id),
-            content = myProfile().member?.nickname ?: ""
+            title = stringResource(id = R.string.nickname),
+            content = LoginUser.nickname!!
         )
 
         ProfileDetailItem(
             title = stringResource(id = R.string.email),
-            content = myProfile().member?.email ?: ""
+            content = LoginUser.email!!
         )
     }
 }

@@ -73,7 +73,7 @@ class WaffleViewModel @Inject constructor(
         if (responseResult.isSuccess) {
             getCommentList()
         } else {
-            waffleUiState.copy(errorCode = responseResult.body!!.errorCode)
+            waffleUiState = waffleUiState.copy(errorCode = responseResult.body!!.errorCode)
         }
     }
 

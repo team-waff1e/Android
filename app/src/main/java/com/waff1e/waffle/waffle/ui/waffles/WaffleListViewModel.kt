@@ -1,5 +1,6 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,8 +8,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.di.LIMIT
+import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.dto.DefaultResponse
+import com.waff1e.waffle.dto.check
+import com.waff1e.waffle.member.data.MemberRepository
+import com.waff1e.waffle.member.dto.Member
+import com.waff1e.waffle.member.ui.profile.ProfileUiState
+import com.waff1e.waffle.utils.removeWaffle
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import com.waff1e.waffle.waffle.dto.WaffleListSuccessResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,15 +27,36 @@ import javax.inject.Inject
 @HiltViewModel
 class WaffleListViewModel @Inject constructor(
     private val waffleRepository: WaffleRepository,
-    private val loginUserPreference: LoginUserPreferenceModule
+    private val memberRepository: MemberRepository,
+    private val loginUserPreference: LoginUserPreferenceModule,
 ) : ViewModel() {
+    var myProfile by mutableStateOf(ProfileUiState())
     var waffleListUiState by mutableStateOf(WaffleListUiState())
     private val idx: MutableState<Long?> = mutableStateOf(null)
     private var isLast = false
 
     init {
         viewModelScope.launch {
+            getMyProfile()
             getWaffleList(true)
+        }
+    }
+
+    private suspend fun getMyProfile() {
+        val responseResult: Response<Member> = memberRepository.getMyProfile()
+
+        if (responseResult.isSuccessful) {
+            myProfile = myProfile.copy(member = responseResult.body()!!)
+
+            LoginUser.email = myProfile.member!!.email
+            LoginUser.nickname = myProfile.member!!.nickname
+            LoginUser.profileUrl = myProfile.member!!.profileUrl
+        } else {
+            val body = Json.decodeFromString<DefaultResponse>(
+                responseResult.errorBody()?.string()!!
+            )
+
+            myProfile = myProfile.copy(errorCode = body.errorCode)
         }
     }
 
@@ -61,7 +89,15 @@ class WaffleListViewModel @Inject constructor(
         }
     }
 
+    suspend fun removeWaffle(id: Long) {
+        waffleListUiState = waffleListUiState.copy(waffleList = waffleListUiState.waffleList.removeWaffle(id))
 
+        val responseResult = waffleRepository.deleteWaffle(id).check()
+
+        if (!responseResult.isSuccess) {
+            waffleListUiState = waffleListUiState.copy(errorCode = responseResult.body!!.errorCode)
+        }
+    }
 
     suspend fun requestWaffleLike(id: Long) {
         // TODO. 포스트맨으로만 테스트하면 에러남

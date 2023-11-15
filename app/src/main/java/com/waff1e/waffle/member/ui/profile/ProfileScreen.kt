@@ -274,7 +274,7 @@ fun ProfileTab(
                                 onLikeBtnClicked(it)
                             }
                         },
-                        onShowPopUpMenuClicked = {  },
+                        onShowPopUpMenuClicked = { a: Boolean, b:Long -> },
                     )
                 }
 

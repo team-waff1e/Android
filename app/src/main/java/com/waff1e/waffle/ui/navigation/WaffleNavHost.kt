@@ -1,6 +1,5 @@
 package com.waff1e.waffle.ui.navigation
 
-import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -28,18 +27,19 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangeNickname
+import com.waff1e.waffle.ui.navigation.NavigationDestination.EditWaffle
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
 import com.waff1e.waffle.utils.WaffleAnimation.slideInUp
 import com.waff1e.waffle.utils.WaffleAnimation.slideOutDown
 import com.waff1e.waffle.utils.WaffleAnimation.slideOutRight
+import com.waff1e.waffle.waffle.ui.editwaffle.EditWaffleScreen
 import com.waff1e.waffle.waffle.ui.postwaffle.PostWaffleScreen
 import com.waff1e.waffle.waffle.ui.waffle.WaffleScreen
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @Composable
 fun WaffleNavHost(
@@ -139,6 +139,11 @@ fun WaffleNavHost(
                 },
                 navigateToPostWaffle = {
                     navController.navigate(PostWaffle.route) {
+                        launchSingleTop = true
+                    }
+                },
+                navigateToEditWaffle = {
+                    navController.navigate(route = "${EditWaffle.route}/${it}") {
                         launchSingleTop = true
                     }
                 }
@@ -305,6 +310,30 @@ fun WaffleNavHost(
                         route = EditProfile.route,
                         inclusive = false
                     )
+                }
+            )
+        }
+
+        // 와플 수정
+        composable(
+            route = "${EditWaffle.route}/{${EditWaffle.waffleArg}}",
+            arguments = listOf(navArgument(EditWaffle.waffleArg) { type = NavType.LongType }),
+            enterTransition = slideInLeft,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight,
+        ) {
+            EditWaffleScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
+                navigateToWaffles = {
+                    navController.navigate(route = Waffles.route) {
+                        popUpTo(Home.route) { inclusive = false }
+                    }
                 }
             )
         }

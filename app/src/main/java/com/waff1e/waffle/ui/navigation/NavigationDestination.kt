@@ -26,4 +26,8 @@ sealed class NavigationDestination(val route: String, val titleRes: Int) {
     object ChangePassword : NavigationDestination("change_password", R.string.change_pwd_btn)
 
     object ChangeNickname : NavigationDestination("change_nickname", R.string.change_nickname_btn)
+
+    object EditWaffle : NavigationDestination("edit_waffle", R.string.edit_waffle) {
+        const val waffleArg = "waffle"
+    }
 }

@@ -54,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,12 +79,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.di.LIMIT
+import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleEditDeleteMenu
+import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
-import com.waff1e.waffle.utils.WaffleAnimation
 import com.waff1e.waffle.utils.clickableSingle
 import com.waff1e.waffle.utils.isEnd
 import com.waff1e.waffle.utils.loadingEffect
@@ -106,6 +108,7 @@ fun WaffleListScreen(
     navigateToProfile: () -> Unit,
     navigateToPostWaffle: () -> Unit,
     navigateToHome: () -> Unit,
+    navigateToEditWaffle: (Long) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -137,15 +140,19 @@ fun WaffleListScreen(
         }
     }
 
-    var showPopUpMenu by remember { mutableStateOf(false) }
+    var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
+    var showReportPopUpMenu by remember { mutableStateOf(false) }
+    var clickedWaffleId by remember { mutableLongStateOf(0L) }
 
     BackHandler {
         if (drawerState.isOpen) {
             coroutineScope.launch {
                 drawerState.apply { close() }
             }
-        } else if (showPopUpMenu) {
-            showPopUpMenu = false
+        } else if (showEditDeletePopUpMenu) {
+            showEditDeletePopUpMenu = false
+        } else if (showReportPopUpMenu) {
+            showReportPopUpMenu = false
         } else if (isFABExpanded) {
             isFABExpandedScrollUp = false
         } else if (System.currentTimeMillis() - backWait >= 2000) {
@@ -227,16 +234,18 @@ fun WaffleListScreen(
                             viewModel.requestWaffleLike(id)
                         }
                     },
-                    onShowPopUpMenuClicked = {
+                    onShowPopUpMenuClicked = { isMine, id ->
+                        clickedWaffleId = id
                         isFABScrollUp = false
-                        showPopUpMenu = true
+
+                        if (isMine) showEditDeletePopUpMenu = true else showReportPopUpMenu = true
                     },
                 )
             }
         }
 
         AnimatedVisibility(
-            visible = showPopUpMenu,
+            visible = showEditDeletePopUpMenu,
             enter = slideInVertically(
                 initialOffsetY = { it * 2 }
             ),
@@ -245,9 +254,30 @@ fun WaffleListScreen(
             )
         ) {
             WaffleEditDeleteMenu(
-                onDismiss = { showPopUpMenu = false },
-                onEditClicked = { },
-                onDeleteClicked = { },
+                onDismiss = { showEditDeletePopUpMenu = false },
+                onEditClicked = {
+                    navigateToEditWaffle(clickedWaffleId)
+                },
+                onDeleteClicked = {
+                    coroutineScope.launch {
+                        viewModel.removeWaffle(clickedWaffleId)
+                    }
+                },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showReportPopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleReportMenu(
+                onDismiss = { showReportPopUpMenu = false },
+                onReportClicked = { },
             )
         }
     }
@@ -258,11 +288,11 @@ fun WaffleListScreen(
 fun WafflesBody(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
-    list: MutableList<Waffle>,
+    list: List<Waffle>,
     getWaffleList: suspend (Boolean) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: (Long) -> Unit,
-    onShowPopUpMenuClicked: () -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -305,11 +335,11 @@ fun WafflesBody(
 fun WaffleListLazyColumn(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
-    list: MutableList<Waffle>,
+    list: List<Waffle>,
     nestedScrollConnection: NestedScrollConnection,
     getWaffleList: suspend (Boolean) -> Unit,
     onLikeBtnClicked: (Long) -> Unit,
-    onShowPopUpMenuClicked: () -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
 ) {
     var isInitializing by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
@@ -385,7 +415,7 @@ fun WaffleListCard(
     item: Waffle,
     onItemClick: (Waffle) -> Unit,
     onLikeClick: (Long) -> Unit,
-    onShowPopUpMenuClicked: () -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -464,7 +494,10 @@ fun WaffleListCard(
                             modifier = Modifier
                                 .size(20.dp)
                                 .clickableSingle(disableRipple = true) {
-                                    onShowPopUpMenuClicked()
+                                    onShowPopUpMenuClicked(
+                                        LoginUser.nickname == item.owner.nickname,
+                                        item.id
+                                    )
                                 },
                             imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                             contentDescription = stringResource(id = R.string.waffle_option),
@@ -660,7 +693,7 @@ fun WafflesPreview() {
         ),
         onItemClick = { },
         onLikeClick = { },
-        onShowPopUpMenuClicked = { }
+        onShowPopUpMenuClicked = { a: Boolean, b: Long -> }
     )
 }
 

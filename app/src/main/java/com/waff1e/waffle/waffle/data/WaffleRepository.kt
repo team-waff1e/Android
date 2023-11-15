@@ -17,6 +17,10 @@ interface WaffleRepository {
 
     suspend fun postWaffle(postWaffleRequest: PostWaffleRequest): Response<DefaultResponse>
 
+    suspend fun updateWaffle(id: Long, updateWaffleRequest: PostWaffleRequest): Response<DefaultResponse>
+
+    suspend fun deleteWaffle(id: Long): Response<DefaultResponse>
+
     suspend fun likeWaffle(id: Long): Response<Waffle>
 
     suspend fun unlikeWaffle(id: Long): Response<Waffle>
@@ -39,6 +43,14 @@ class DefaultWaffleRepository @Inject constructor(
 
     override suspend fun postWaffle(postWaffleRequest: PostWaffleRequest): Response<DefaultResponse> {
         return waffleService.postWaffle(postWaffleRequest)
+    }
+
+    override suspend fun updateWaffle(id: Long, updateWaffleRequest: PostWaffleRequest): Response<DefaultResponse> {
+        return waffleService.updateWaffle(id, updateWaffleRequest)
+    }
+
+    override suspend fun deleteWaffle(id: Long): Response<DefaultResponse> {
+        return waffleService.deleteWaffle(id)
     }
 
     override suspend fun likeWaffle(id: Long): Response<Waffle> {

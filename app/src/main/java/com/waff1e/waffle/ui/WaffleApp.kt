@@ -83,6 +83,7 @@ fun WaffleTopAppBar(
     type: TopAppbarType = TopAppbarType.Default,
     onAction: () -> Unit = { },
     enableAction: Boolean = false,
+    actionBtnText: String = stringResource(id = R.string.post_waffle)
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -109,7 +110,8 @@ fun WaffleTopAppBar(
                     PostWaffleButton(
                         modifier = modifier,
                         onAction = onAction,
-                        enableAction = enableAction
+                        enableAction = enableAction,
+                        text = actionBtnText
                     )
                 }
                 TopAppbarType.Profile -> {
@@ -134,7 +136,7 @@ fun PostWaffleButton(
     modifier: Modifier = Modifier,
     onAction: () -> Unit,
     enableAction: Boolean,
-    text: String = stringResource(id = R.string.post_waffle),
+    text: String,
 ) {
     var defenderDoubleClick by remember {
         mutableStateOf(true)
@@ -215,6 +217,41 @@ fun WaffleDivider(
 }
 
 @Composable
+fun WaffleReportMenu(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onReportClicked: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .clickableSingle(disableRipple = true) { onDismiss() },
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
+        ) {
+            WaffleEditDeleteMenuItem(
+                title = stringResource(id = R.string.do_report),
+                imageVector = ImageVector.vectorResource(id = R.drawable.edit),
+                onClicked = {  }
+            )
+        }
+    }
+}
+
+
+@Composable
 fun WaffleEditDeleteMenu(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
@@ -241,15 +278,18 @@ fun WaffleEditDeleteMenu(
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
             WaffleEditDeleteMenuItem(
-                title = "수정",
+                title = stringResource(id = R.string.do_edit),
                 imageVector = ImageVector.vectorResource(id = R.drawable.edit),
-                onClicked = {  }
+                onClicked = { onEditClicked() }
             )
 
             WaffleEditDeleteMenuItem(
-                title = "삭제",
+                title = stringResource(id = R.string.do_delete),
                 imageVector = ImageVector.vectorResource(id = R.drawable.delete),
-                onClicked = {  }
+                onClicked = {
+                    onDeleteClicked()
+                    onDismiss()
+                }
             )
         }
     }
@@ -273,7 +313,7 @@ fun WaffleEditDeleteMenuItem(
             modifier = Modifier
                 .size(30.dp),
             imageVector = imageVector,
-            contentDescription = stringResource(id = R.string.edit_delete_menu_item),
+            contentDescription = stringResource(id = R.string.edit_delete_report_menu_item),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
         )
 
