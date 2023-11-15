@@ -69,6 +69,7 @@
     <string name="fab_desc">플로팅 액션 버튼 아이콘</string>
     <string name="edit_profile_item_icon">프로필 수정 아이템 아이콘</string>
     <string name="add_image">이미지 추가 버튼</string>
+    <string name="edit_delete_menu_item">수정, 삭제 메뉴 아이템</string>
 
     <!-- TabItem Type 관련 -->
     <string name="tab_item_type_waffle">게시글</string>

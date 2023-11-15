@@ -1,22 +1,22 @@
 package com.waff1e.waffle.ui
 
 import android.app.Activity
-import android.view.Window
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
@@ -37,18 +37,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -58,6 +56,7 @@ import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.ui.navigation.WaffleNavHost
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TopAppbarType
+import com.waff1e.waffle.utils.clickableSingle
 import kotlinx.coroutines.delay
 
 @Composable
@@ -68,16 +67,6 @@ fun WaffleApp(
     WaffleNavHost(
         navController = navController,
         loginUserPreference = loginUserPreference,
-    )
-}
-
-@Composable
-fun WaffleTopAppBarTitleText(
-    title: String
-) {
-    Text(
-        text = title,
-        style = Typography.titleMedium
     )
 }
 
@@ -225,40 +214,72 @@ fun WaffleDivider(
     Spacer(modifier = modifier.size(bottomPadding))
 }
 
-fun Modifier.loadingEffect(): Modifier = composed {
-    var size by remember {
-        mutableStateOf(IntSize.Zero)
-    }
-
-    val transition = rememberInfiniteTransition(label = "")
-    val translateAnimation by transition.animateFloat(
-        initialValue = -2 * size.width.toFloat(),
-        targetValue = 2 * size.width.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearOutSlowInEasing)
-        ),
-        label = ""
-    )
-
-    background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                Color.LightGray.copy(alpha = 0.9f),
-                Color.LightGray.copy(alpha = 0.4f),
-            ),
-            start = Offset(translateAnimation, translateAnimation),
-            end = Offset(
-                translateAnimation + size.width.toFloat(),
-                translateAnimation + size.height.toFloat()
-            ),
-            tileMode = TileMode.Mirror
+@Composable
+fun WaffleEditDeleteMenu(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onEditClicked: () -> Unit,
+    onDeleteClicked: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .clickableSingle(disableRipple = true) { onDismiss() },
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
         )
-    )
-        .onGloballyPositioned {
-            size = it.size
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
+        ) {
+            WaffleEditDeleteMenuItem(
+                title = "수정",
+                imageVector = ImageVector.vectorResource(id = R.drawable.edit),
+                onClicked = {  }
+            )
+
+            WaffleEditDeleteMenuItem(
+                title = "삭제",
+                imageVector = ImageVector.vectorResource(id = R.drawable.delete),
+                onClicked = {  }
+            )
         }
+    }
 }
 
-fun LazyListState.isEnd(): Boolean {
-    return layoutInfo.visibleItemsInfo.firstOrNull()?.index != 0 && layoutInfo.visibleItemsInfo.lastOrNull()?.index == layoutInfo.totalItemsCount - 1
+@Composable
+fun WaffleEditDeleteMenuItem(
+    modifier: Modifier = Modifier,
+    title: String,
+    imageVector: ImageVector,
+    onClicked: () -> Unit = { }
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickableSingle(disableRipple = true, onClick = { onClicked() }),
+        horizontalArrangement = Arrangement.spacedBy(30.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            modifier = Modifier
+                .size(30.dp),
+            imageVector = imageVector,
+            contentDescription = stringResource(id = R.string.edit_delete_menu_item),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
+        )
+
+        Text(
+            text = title,
+            style = Typography.bodyLarge
+        )
+    }
 }

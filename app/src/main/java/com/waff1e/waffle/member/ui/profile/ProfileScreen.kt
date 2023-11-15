@@ -89,6 +89,8 @@ fun ProfileScreen(
         }
     }
 
+    var showPopUpMenu by remember { mutableStateOf(false) }
+
     BackHandler {
         if (isFABExpanded) {
             isFABExpanded = false
@@ -135,7 +137,8 @@ fun ProfileScreen(
                 coroutineScope.launch {
                     viewModel.requestWaffleLike(id)
                 }
-            }
+            },
+            showPopUpMenu = showPopUpMenu
         )
     }
 }
@@ -148,7 +151,8 @@ fun ProfileBody(
     getMyWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
-    onLikeBtnClicked: suspend (Long) -> Unit
+    onLikeBtnClicked: suspend (Long) -> Unit,
+    showPopUpMenu: Boolean
 ) {
     Column(
         modifier = modifier
@@ -190,7 +194,8 @@ fun ProfileBody(
             getMyWaffleList = getMyWaffleList,
             onWaffleClick = onWaffleClick,
             nestedScrollConnection = nestedScrollConnection,
-            onLikeBtnClicked = onLikeBtnClicked
+            onLikeBtnClicked = onLikeBtnClicked,
+            showPopUpMenu = showPopUpMenu
         )
     }
 }
@@ -203,7 +208,8 @@ fun ProfileTab(
     getMyWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
-    onLikeBtnClicked: suspend (Long) -> Unit
+    onLikeBtnClicked: suspend (Long) -> Unit,
+    showPopUpMenu: Boolean
 ) {
     val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Like)
     var selectedTabIdx by remember { mutableIntStateOf(0) }
@@ -267,7 +273,8 @@ fun ProfileTab(
                             coroutineScope.launch {
                                 onLikeBtnClicked(it)
                             }
-                        }
+                        },
+                        onShowPopUpMenuClicked = {  },
                     )
                 }
 

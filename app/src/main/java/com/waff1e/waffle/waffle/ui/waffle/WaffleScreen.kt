@@ -35,8 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,9 +57,9 @@ import com.waff1e.waffle.comment.dto.Comment
 import com.waff1e.waffle.ui.PostWaffleButton
 import com.waff1e.waffle.ui.WaffleDivider
 import com.waff1e.waffle.ui.WaffleTopAppBar
-import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
+import com.waff1e.waffle.utils.isEnd
 import com.waff1e.waffle.waffle.dto.Waffle
 import com.waff1e.waffle.waffle.dto.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.LoadingWaffle

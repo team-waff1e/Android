@@ -167,10 +167,10 @@ fun WaffleNavHost(
         // PostWaffle (게시글 작성)
         composable(
             route = PostWaffle.route,
-            enterTransition = slideInLeft,
-            exitTransition = slideOutRight,
-            popExitTransition = slideOutRight,
-            popEnterTransition = slideInLeft,
+            enterTransition = slideInUp,
+            exitTransition = slideOutDown,
+            popExitTransition = slideOutDown,
+            popEnterTransition = slideInUp,
         ) {
             PostWaffleScreen(
                 navigateBack = {

@@ -61,6 +61,8 @@ class WaffleListViewModel @Inject constructor(
         }
     }
 
+
+
     suspend fun requestWaffleLike(id: Long) {
         // TODO. 포스트맨으로만 테스트하면 에러남
         val idx = waffleListUiState.waffleList.indexOfFirst { it.id == id }
