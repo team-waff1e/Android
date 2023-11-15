@@ -48,9 +48,9 @@ class WaffleListViewModel @Inject constructor(
         if (responseResult.isSuccessful) {
             myProfile = myProfile.copy(member = responseResult.body()!!)
 
-            LoginUser.email = myProfile.member!!.email
-            LoginUser.nickname = myProfile.member!!.nickname
-            LoginUser.profileUrl = myProfile.member!!.profileUrl
+            LoginUser.email = myProfile.member?.email ?: ""
+            LoginUser.nickname = myProfile.member?.nickname ?: ""
+            LoginUser.profileUrl = myProfile.member?.profileUrl ?: ""
         } else {
             val body = Json.decodeFromString<DefaultResponse>(
                 responseResult.errorBody()?.string()!!

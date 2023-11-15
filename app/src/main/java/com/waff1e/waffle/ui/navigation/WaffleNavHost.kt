@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.comment.ui.editcomment.EditCommentScreen
 import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.member.ui.change_nickname.ChangeNicknameScreen
 import com.waff1e.waffle.member.ui.change_password.ChangePasswordScreen
@@ -28,6 +29,7 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
 import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangeNickname
 import com.waff1e.waffle.ui.navigation.NavigationDestination.EditWaffle
+import com.waff1e.waffle.ui.navigation.NavigationDestination.EditComment
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
@@ -90,7 +92,7 @@ fun WaffleNavHost(
                 },
                 navigateToWaffles = {
                     navController.navigate(Waffles.route) {
-                        popUpTo(Home.route) { inclusive = true }
+                        popUpTo(Waffles.route) { inclusive = true }
                     }
                 }
             )
@@ -152,8 +154,8 @@ fun WaffleNavHost(
 
         // Waffle (단일 게시글 조회)
         composable(
-            route = "${Waffle.route}/{${Waffle.waffleArg}}",
-            arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType }),
+            route = "${Waffle.route}/{${Waffle.waffleId}}",
+            arguments = listOf(navArgument(Waffle.waffleId) { type = NavType.LongType }),
             enterTransition = slideInLeft,
             exitTransition = fadeOut,
             popExitTransition = slideOutRight,
@@ -165,6 +167,21 @@ fun WaffleNavHost(
                         route = Waffles.route,
                         inclusive = false
                     )
+                },
+                navigateToWaffleList = {
+                    navController.navigate(Waffles.route) {
+                        popUpTo(Waffles.route) { inclusive = true }
+                    }
+                },
+                navigateToEditWaffle = {
+                    navController.navigate(route = "${EditWaffle.route}/${it}") {
+                        launchSingleTop = true
+                    }
+                },
+                navigateToEditComment = { waffleId, commentId ->
+                    navController.navigate(route = "${EditComment.route}/${waffleId}/${commentId}") {
+                        launchSingleTop = true
+                    }
                 },
             )
         }
@@ -207,7 +224,11 @@ fun WaffleNavHost(
                         inclusive = false
                     )
                 },
-                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
+                navigateToWaffle = {
+                    navController.navigate(route = "${Waffle.route}/${it}") {
+                        launchSingleTop = true
+                    }
+                },
                 navigateToPostWaffle = {
                     navController.navigate(PostWaffle.route) {
                         launchSingleTop = true
@@ -314,10 +335,10 @@ fun WaffleNavHost(
             )
         }
 
-        // 와플 수정
+        // Waffle 수정
         composable(
-            route = "${EditWaffle.route}/{${EditWaffle.waffleArg}}",
-            arguments = listOf(navArgument(EditWaffle.waffleArg) { type = NavType.LongType }),
+            route = "${EditWaffle.route}/{${EditWaffle.waffleId}}",
+            arguments = listOf(navArgument(EditWaffle.waffleId) { type = NavType.LongType }),
             enterTransition = slideInLeft,
             popEnterTransition = slideInLeft,
             exitTransition = slideOutRight,
@@ -332,7 +353,34 @@ fun WaffleNavHost(
                 },
                 navigateToWaffles = {
                     navController.navigate(route = Waffles.route) {
-                        popUpTo(Home.route) { inclusive = false }
+                        popUpTo(Waffles.route) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        // Comment 수정
+        composable(
+            route = "${EditComment.route}/{${EditComment.waffleId}}/{${EditComment.commentId}}",
+            arguments = listOf(
+                navArgument(EditComment.waffleId) { type = NavType.LongType },
+                navArgument(EditComment.commentId) { type = NavType.LongType }
+            ),
+            enterTransition = slideInLeft,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight,
+        ) {
+            EditCommentScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
+                navigateToWaffle = {
+                    navController.navigate(route = "${Waffle.route}/${it}") {
+                        popUpTo(Waffles.route) { inclusive = false }
                     }
                 }
             )

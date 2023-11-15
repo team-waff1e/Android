@@ -1,6 +1,9 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,8 +58,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.comment.dto.Comment
+import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.ui.PostWaffleButton
 import com.waff1e.waffle.ui.WaffleDivider
+import com.waff1e.waffle.ui.WaffleEditDeleteMenu
+import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
@@ -69,6 +76,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+enum class WaffleScreenType {
+    WAFFLE, COMMENT
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaffleScreen(
@@ -76,45 +87,115 @@ fun WaffleScreen(
     viewModel: WaffleViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     navigateBack: () -> Unit,
+    navigateToWaffleList: () -> Unit,
+    navigateToEditWaffle: (Long) -> Unit,
+    navigateToEditComment: (Long, Long) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
+    var showReportPopUpMenu by remember { mutableStateOf(false) }
+    var selectedContentType by remember { mutableStateOf(WaffleScreenType.WAFFLE) }
+    var clickedWaffleId by remember { mutableLongStateOf(0L) }
+    var clickedCommentId by remember { mutableLongStateOf(0L) }
 
-    Scaffold(
+
+    Box(
         modifier = modifier
-            .background(Color.Transparent),
-        topBar = {
-            WaffleTopAppBar(
-                hasNavigationIcon = canNavigationBack,
-                navigationIconClicked = navigateBack
-            )
-        },
-    ) { innerPadding ->
-        WaffleBody(
+            .fillMaxSize()
+    ) {
+        Scaffold(
             modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            waffleUiState = { viewModel.waffleUiState },
-            onLikeBtnClicked = { id ->
-                viewModel.waffleUiState.waffle?.updateLikes()
+                .background(Color.Transparent),
+            topBar = {
+                WaffleTopAppBar(
+                    hasNavigationIcon = canNavigationBack,
+                    navigationIconClicked = navigateBack
+                )
+            },
+        ) { innerPadding ->
+            WaffleBody(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                waffleUiState = { viewModel.waffleUiState },
+                onLikeBtnClicked = { id ->
+                    viewModel.waffleUiState.waffle?.updateLikes()
 
-                coroutineScope.launch {
-                    viewModel.requestWaffleLike(id)
+                    coroutineScope.launch {
+                        viewModel.requestWaffleLike(id)
+                    }
+                },
+                getCommentList = viewModel::getCommentList,
+                list = viewModel.waffleUiState.commentList,
+                navigateBack = navigateBack,
+                commentContent = viewModel.commentContent,
+                onCommentChange = {
+                    viewModel.commentContent = it
+                },
+                onPostCommentBtnClicked = {
+                    coroutineScope.launch {
+                        viewModel.postComment()
+                        viewModel.commentContent = ""
+                    }
+                },
+                onShowPopUpMenuClicked = { isMine, waffleId, commentId, type ->
+                    selectedContentType = type
+
+                    clickedWaffleId = waffleId
+                    if (type == WaffleScreenType.COMMENT) {
+                        clickedCommentId = commentId
+                    }
+
+                    if (isMine) showEditDeletePopUpMenu = true else showReportPopUpMenu = true
                 }
-            },
-            getCommentList = viewModel::getCommentList,
-            list = viewModel.waffleUiState.commentList,
-            navigateBack = navigateBack,
-            commentContent = viewModel.commentContent,
-            onCommentChange = {
-                viewModel.commentContent = it
-            },
-            onPostCommentBtnClicked = {
-                coroutineScope.launch {
-                    viewModel.postComment()
-                    viewModel.commentContent = ""
-                }
-            }
-        )
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showEditDeletePopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleEditDeleteMenu(
+                onDismiss = { showEditDeletePopUpMenu = false },
+                onEditClicked = {
+                    if (selectedContentType == WaffleScreenType.WAFFLE) {
+                        navigateToEditWaffle(clickedWaffleId)
+                    } else {
+                        navigateToEditComment(clickedWaffleId, clickedCommentId)
+                    }
+                },
+                onDeleteClicked = {
+                    coroutineScope.launch {
+                        if (selectedContentType == WaffleScreenType.WAFFLE) {
+                            viewModel.removeWaffle(clickedWaffleId)
+                            navigateToWaffleList()
+                        } else {
+                            viewModel.removeComment(clickedWaffleId, clickedCommentId)
+                        }
+                    }
+                },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showReportPopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleReportMenu(
+                onDismiss = { showReportPopUpMenu = false },
+                onReportClicked = { },
+            )
+        }
     }
 }
 
@@ -128,7 +209,8 @@ fun WaffleBody(
     navigateBack: () -> Unit,
     commentContent: String,
     onCommentChange: (String) -> Unit,
-    onPostCommentBtnClicked: () -> Unit
+    onPostCommentBtnClicked: () -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -178,7 +260,8 @@ fun WaffleBody(
                     } else if (waffle.waffle != null) {
                         WaffleCard(
                             item = waffle.waffle,
-                            onLikeBtnClicked = onLikeBtnClicked
+                            onLikeBtnClicked = onLikeBtnClicked,
+                            onShowPopUpMenuClicked = onShowPopUpMenuClicked
                         )
                     } else {
                         // TODO. 응답 오류 처리 필요
@@ -210,6 +293,7 @@ fun WaffleBody(
                         CommentCard(
                             item = item,
                             onItemClick = { },
+                            onShowPopUpMenuClicked = onShowPopUpMenuClicked
                         )
                     }
                 }
@@ -244,6 +328,7 @@ fun WaffleCard(
     modifier: Modifier = Modifier,
     item: Waffle,
     onLikeBtnClicked: (Long) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -311,7 +396,15 @@ fun WaffleCard(
 
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
+                            .size(20.dp)
+                            .clickableSingle(disableRipple = true) {
+                                onShowPopUpMenuClicked(
+                                    item.owner.nickname == LoginUser.nickname,
+                                    item.id,
+                                    -1L,
+                                    WaffleScreenType.WAFFLE
+                                )
+                            },
                         imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                         contentDescription = stringResource(id = R.string.waffle_option),
                         tint = MaterialTheme.colorScheme.onBackground
@@ -386,6 +479,7 @@ fun CommentCard(
     modifier: Modifier = Modifier,
     item: Comment,
     onItemClick: (Comment) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
 ) {
     Card(
         modifier = modifier
@@ -456,7 +550,15 @@ fun CommentCard(
 
                         Icon(
                             modifier = Modifier
-                                .size(20.dp),
+                                .size(20.dp)
+                                .clickableSingle(disableRipple = true) {
+                                    onShowPopUpMenuClicked(
+                                        item.member.nickname == LoginUser.nickname,
+                                        item.waffleId,
+                                        item.id,
+                                        WaffleScreenType.COMMENT
+                                    )
+                                },
                             imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                             contentDescription = stringResource(id = R.string.waffle_option),
                             tint = MaterialTheme.colorScheme.onBackground
@@ -481,7 +583,7 @@ fun CommentTextField(
     changeFocus: (Boolean) -> Unit,
     commentContent: String,
     onCommentChange: (String) -> Unit,
-    onPostCommentBtnClicked: () -> Unit
+    onPostCommentBtnClicked: () -> Unit,
 ) {
     Column(
         modifier = modifier

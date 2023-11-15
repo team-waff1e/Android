@@ -1,6 +1,5 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,27 +7,26 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.waff1e.waffle.comment.data.CommentRepository
-import com.waff1e.waffle.comment.dto.CommentListRequest
 import com.waff1e.waffle.comment.dto.CommentRequest
 import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.dto.check
 import com.waff1e.waffle.ui.navigation.NavigationDestination
+import com.waff1e.waffle.utils.removeComment
 import com.waff1e.waffle.waffle.data.WaffleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class WaffleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val waffleRepository: WaffleRepository,
-    private val commentRepository: CommentRepository
+    private val commentRepository: CommentRepository,
 ) : ViewModel() {
-    private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleArg])
+    private val waffleId: Long =
+        checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleId])
     var waffleUiState by mutableStateOf(WaffleUiState())
     var commentContent by mutableStateOf("")
 
@@ -47,7 +45,8 @@ class WaffleViewModel @Inject constructor(
                 waffle = responseWaffleResult.body()!!,
             )
         } else {
-            val body = Json.decodeFromString<DefaultResponse>(responseWaffleResult.errorBody()?.string()!!)
+            val body =
+                Json.decodeFromString<DefaultResponse>(responseWaffleResult.errorBody()?.string()!!)
             waffleUiState.copy(errorCode = body.errorCode)
         }
     }
@@ -62,17 +61,38 @@ class WaffleViewModel @Inject constructor(
 
             waffleUiState.copy(commentList = newList)
         } else {
-            val body = Json.decodeFromString<DefaultResponse>(responseCommentListResult.errorBody()?.string()!!)
+            val body = Json.decodeFromString<DefaultResponse>(
+                responseCommentListResult.errorBody()?.string()!!
+            )
             waffleUiState.copy(errorCode = body.errorCode)
         }
     }
 
     suspend fun postComment() {
-        val responseResult = commentRepository.postComment(waffleId, CommentRequest(commentContent)).check()
+        val responseResult =
+            commentRepository.postComment(waffleId, CommentRequest(commentContent)).check()
 
         if (responseResult.isSuccess) {
             getCommentList()
         } else {
+            waffleUiState = waffleUiState.copy(errorCode = responseResult.body!!.errorCode)
+        }
+    }
+
+    suspend fun removeWaffle(id: Long) {
+        val responseResult = waffleRepository.deleteWaffle(id).check()
+
+        if (!responseResult.isSuccess) {
+            waffleUiState = waffleUiState.copy(errorCode = responseResult.body!!.errorCode)
+        }
+    }
+
+    suspend fun removeComment(waffleId: Long, commentId: Long) {
+        waffleUiState = waffleUiState.copy(commentList = waffleUiState.commentList.removeComment(commentId))
+
+        val responseResult = commentRepository.deleteComment(waffleId, commentId).check()
+
+        if (!responseResult.isSuccess) {
             waffleUiState = waffleUiState.copy(errorCode = responseResult.body!!.errorCode)
         }
     }

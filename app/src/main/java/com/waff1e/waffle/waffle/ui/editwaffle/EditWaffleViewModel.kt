@@ -1,6 +1,5 @@
 package com.waff1e.waffle.waffle.ui.editwaffle
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,7 +23,7 @@ class EditWaffleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val waffleRepository: WaffleRepository,
 ) : ViewModel() {
-    private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditWaffle.waffleArg])
+    private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditWaffle.waffleId])
     var waffleUiState by mutableStateOf(WaffleUiState())
     private var _content by mutableStateOf("")
     val content: String get() = _content

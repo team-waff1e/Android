@@ -1,7 +1,7 @@
 package com.waff1e.waffle.di
 
 object LoginUser {
-    var email: String? = null
-    var nickname: String? = null
-    var profileUrl: String? = null
+    var email: String = ""
+    var nickname: String = ""
+    var profileUrl: String = ""
 }

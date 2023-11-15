@@ -12,6 +12,7 @@
     <string name="edit_profile">내 계정</string>
     <string name="profile_detail">계정 정보</string>
     <string name="edit_waffle">Waffle 수정</string>
+    <string name="edit_comment">Comment 수정</string>
 
     <!-- 요소 관련 -->
     <string name="navigation_icon">네비게이션 아이콘</string>
