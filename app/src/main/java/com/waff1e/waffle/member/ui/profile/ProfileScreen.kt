@@ -31,8 +31,10 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -179,7 +181,7 @@ fun ProfileScreen(
                 changeShowReportPopUpMenu = {
                     showReportPopUpMenu = true
                 },
-                isMyProfile = viewModel.isMyProfile
+                isMyProfile = viewModel.isMyProfile,
             )
         }
 
@@ -304,7 +306,7 @@ fun ProfileBody(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProfileTab(
     modifier: Modifier = Modifier,
@@ -322,6 +324,18 @@ fun ProfileTab(
     var selectedTabIdx by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState { tabItems.size }
     val context = LocalContext.current
+
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+//                viewModel.getWaffleList(true)
+                isRefreshing = false
+            }
+        }
+    )
 
     Column(
         modifier = modifier
@@ -387,9 +401,12 @@ fun ProfileTab(
                             if (isMine) changeShowEditDeletePopUpMenu() else changeShowReportPopUpMenu()
                         },
                         onProfileImageClicked = { _ ->
-                            // TODO. 페이지에서 클릭 시 처리 필요
+                            // TODO. 페이지에서 프로필 이미지 클릭 시 처리 필요
                             Toast.makeText(context, "같은 페이지 이동 불가!", Toast.LENGTH_SHORT).show()
-                        }
+                        },
+                        canRefresh = true,
+                        isRefreshing = isRefreshing,
+                        pullRefreshState = pullRefreshState
                     )
                 }
 
