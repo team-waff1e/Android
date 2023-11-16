@@ -1,6 +1,7 @@
 package com.waff1e.waffle.member.network
 
 import com.waff1e.waffle.dto.DefaultResponse
+import com.waff1e.waffle.member.dto.FollowRequest
 import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.member.dto.NicknameRequest
 import com.waff1e.waffle.member.dto.PasswordRequest
@@ -42,4 +43,14 @@ interface MemberService {
 
     @PATCH("members/nickname")
     suspend fun updateNickname(@Body nicknameRequest: NicknameRequest): Response<DefaultResponse>
+
+    @POST("members/follow")
+    suspend fun follow(@Body memberId: FollowRequest): Response<DefaultResponse>
+
+    @POST("members/unfollow")
+    suspend fun unfollow(@Body memberId: FollowRequest): Response<DefaultResponse>
+
+    // TODO. 팔로우 리스트 조회
+//    @GET("members/follow")
+//    suspend fun getFollowList(@Body memberId: FollowRequest): Response<DefaultResponse>
 }

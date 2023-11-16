@@ -90,6 +90,7 @@ fun WaffleScreen(
     navigateToWaffleList: () -> Unit,
     navigateToEditWaffle: (Long) -> Unit,
     navigateToEditComment: (Long, Long) -> Unit,
+    navigateToProfile: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
@@ -147,6 +148,13 @@ fun WaffleScreen(
                     }
 
                     if (isMine) showEditDeletePopUpMenu = true else showReportPopUpMenu = true
+                },
+                onProfileImageClicked = { nickname, memberId ->
+                    if (LoginUser.nickname == nickname) {
+                        navigateToProfile(null)
+                    } else {
+                        navigateToProfile(memberId.toString())
+                    }
                 }
             )
         }
@@ -211,6 +219,7 @@ fun WaffleBody(
     onCommentChange: (String) -> Unit,
     onPostCommentBtnClicked: () -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
+    onProfileImageClicked: (String, Long) -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -261,7 +270,8 @@ fun WaffleBody(
                         WaffleCard(
                             item = waffle.waffle,
                             onLikeBtnClicked = onLikeBtnClicked,
-                            onShowPopUpMenuClicked = onShowPopUpMenuClicked
+                            onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+                            onProfileImageClicked = onProfileImageClicked
                         )
                     } else {
                         // TODO. 응답 오류 처리 필요
@@ -293,7 +303,8 @@ fun WaffleBody(
                         CommentCard(
                             item = item,
                             onItemClick = { },
-                            onShowPopUpMenuClicked = onShowPopUpMenuClicked
+                            onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+                            onProfileImageClicked = onProfileImageClicked
                         )
                     }
                 }
@@ -329,6 +340,7 @@ fun WaffleCard(
     item: Waffle,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
+    onProfileImageClicked: (String, Long) -> Unit
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -353,7 +365,10 @@ fun WaffleCard(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onBackground),
+                        .background(MaterialTheme.colorScheme.onBackground)
+                        .clickableSingle(disableRipple = true) {
+                            onProfileImageClicked(item.owner.nickname!!, item.owner.id!!)
+                        },
                     imageVector = ImageVector.vectorResource(id = R.drawable.person),
                     contentDescription = stringResource(id = R.string.profile_img),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
@@ -480,6 +495,7 @@ fun CommentCard(
     item: Comment,
     onItemClick: (Comment) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
+    onProfileImageClicked: (String, Long) -> Unit
 ) {
     Card(
         modifier = modifier
@@ -498,7 +514,10 @@ fun CommentCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onBackground),
+                    .background(MaterialTheme.colorScheme.onBackground)
+                    .clickableSingle(disableRipple = true) {
+                        onProfileImageClicked(item.member.nickname!!, item.member.id!!)
+                    },
                 imageVector = ImageVector.vectorResource(id = R.drawable.person),
                 contentDescription = stringResource(id = R.string.profile_img),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
@@ -590,7 +609,6 @@ fun CommentTextField(
             .height(IntrinsicSize.Min),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        // TODO. 답글 다는 기능
         TextField(
             modifier = Modifier
                 .fillMaxWidth()

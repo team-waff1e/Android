@@ -12,6 +12,7 @@ import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.dto.check
 import com.waff1e.waffle.member.data.MemberRepository
+import com.waff1e.waffle.member.dto.FollowRequest
 import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.ui.navigation.NavigationDestination
 import com.waff1e.waffle.utils.removeWaffle
@@ -36,6 +37,7 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
     private val memberString: String? = savedStateHandle[NavigationDestination.Profile.MEMBER_ID]
     private val memberId: Long? = memberString?.toLong()
+    var isMyProfile = true
 
     var profile by mutableStateOf(ProfileUiState())
     var waffleListUiState by mutableStateOf(WaffleListUiState())
@@ -43,8 +45,13 @@ class ProfileViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            Log.d("로그", "$memberId")
-            if (memberId == null) getMyProfile() else getProfileByMemberId()
+            if (memberId == null) {
+                isMyProfile = true
+                getMyProfile()
+            } else {
+                isMyProfile = false
+                getProfileByMemberId()
+            }
             getWaffleListByMemberId(true)
         }
     }
@@ -144,5 +151,13 @@ class ProfileViewModel @Inject constructor(
 //            )
 //            waffleListUiState = waffleListUiState.copy(errorCode = body.errorCode)
 //        }
+    }
+
+    suspend fun follow() {
+        val responseResult = memberRepository.follow(FollowRequest(memberId = memberId!!)).check()
+    }
+
+    suspend fun unfollow() {
+        val responseResult = memberRepository.unfollow(FollowRequest(memberId = memberId!!))
     }
 }

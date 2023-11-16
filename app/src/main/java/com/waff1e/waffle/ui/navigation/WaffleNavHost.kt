@@ -66,14 +66,10 @@ fun WaffleNavHost(
         composable(route = Home.route) {
             HomeScreen(
                 navigateToLogin = {
-                    navController.navigate(Login.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Login.route)
                 },
                 navigateToSignup = {
-                    navController.navigate(Signup.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Signup.route)
                 }
             )
         }
@@ -122,16 +118,11 @@ fun WaffleNavHost(
             route = Waffles.route
         ) {
             WaffleListScreen(
-                navigateToWaffle = {
-                    navController.navigate(route = "${Waffle.route}?waffleId=${it}") {
-                        launchSingleTop = true
-                    }
+                navigateToWaffle = { waffleId ->
+                    navController.navigate(route = "${Waffle.route}?waffleId=${waffleId}")
                 },
                 navigateToMyProfile = {
-                    navController.navigate(route = Profile.route) {
-                        launchSingleTop = true
-                        popUpTo(Waffles.route) { inclusive = false }
-                    }
+                    navController.navigate(route = Profile.route)
                 },
                 navigateToHome = {
                     navController.navigate(route = Home.route) {
@@ -140,20 +131,13 @@ fun WaffleNavHost(
                     }
                 },
                 navigateToPostWaffle = {
-                    navController.navigate(PostWaffle.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(PostWaffle.route)
                 },
                 navigateToEditWaffle = { waffleId ->
-                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}") {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}")
                 },
                 navigateToProfile = { memberId ->
-                    navController.navigate(route = "${Profile.route}?memberId=${memberId}") {
-                        launchSingleTop = true
-                        popUpTo(Waffles.route) { inclusive = false }
-                    }
+                    navController.navigate(route = "${Profile.route}?memberId=${memberId}")
                 }
             )
         }
@@ -169,10 +153,7 @@ fun WaffleNavHost(
         ) {
             WaffleScreen(
                 navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack()
                 },
                 navigateToWaffleList = {
                     navController.navigate(Waffles.route) {
@@ -180,15 +161,14 @@ fun WaffleNavHost(
                     }
                 },
                 navigateToEditWaffle = { waffleId ->
-                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}") {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}")
                 },
                 navigateToEditComment = { waffleId, commentId ->
-                    navController.navigate(route = "${EditComment.route}?waffleId=${waffleId}&commentId=${commentId}") {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = "${EditComment.route}?waffleId=${waffleId}&commentId=${commentId}")
                 },
+                navigateToProfile = { memberId ->
+                    navController.navigate(route = "${Profile.route}?memberId=${memberId}")
+                }
             )
         }
 
@@ -202,10 +182,7 @@ fun WaffleNavHost(
         ) {
             PostWaffleScreen(
                 navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack()
                 },
                 navigateToWaffles = {
                     navController.navigate(route = Waffles.route) {
@@ -229,30 +206,19 @@ fun WaffleNavHost(
         ) {
             ProfileScreen(
                 navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack()
                 },
-                navigateToWaffle = {
-                    navController.navigate(route = "${Waffle.route}?waffleId=${it}") {
-                        launchSingleTop = true
-                    }
+                navigateToWaffle = { waffleId ->
+                    navController.navigate(route = "${Waffle.route}?waffleId=${waffleId}")
                 },
                 navigateToPostWaffle = {
-                    navController.navigate(PostWaffle.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(PostWaffle.route)
                 },
                 navigateToEditProfile = {
-                    navController.navigate(route = EditProfile.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = EditProfile.route)
                 },
-                navigateToEditWaffle = {
-                    navController.navigate(route = "${EditWaffle.route}?waffleId=${it}") {
-                        launchSingleTop = true
-                    }
+                navigateToEditWaffle = { waffleId ->
+                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}")
                 }
             )
         }
@@ -273,9 +239,7 @@ fun WaffleNavHost(
                     )
                 },
                 navigateToProfileDetail = {
-                    navController.navigate(route = ProfileDetail.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = ProfileDetail.route)
                 },
                 navigateToHome = {
                     navController.navigate(route = Home.route) {
@@ -284,14 +248,10 @@ fun WaffleNavHost(
                     }
                 },
                 navigateToChangePassword = {
-                    navController.navigate(route = ChangePassword.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = ChangePassword.route)
                 },
                 navigateToChangeNickname = {
-                    navController.navigate(route = ChangeNickname.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = ChangeNickname.route)
                 }
             )
         }
@@ -393,8 +353,8 @@ fun WaffleNavHost(
                         inclusive = false
                     )
                 },
-                navigateToWaffle = {
-                    navController.navigate(route = "${Waffle.route}/${it}") {
+                navigateToWaffle = { waffleId ->
+                    navController.navigate(route = "${Waffle.route}/${waffleId}") {
                         popUpTo(Waffles.route) { inclusive = false }
                     }
                 }

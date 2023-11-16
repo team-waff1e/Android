@@ -53,6 +53,8 @@
     <string name="do_edit">수정하기</string>
     <string name="do_delete">삭제하기</string>
     <string name="do_report">신고하기</string>
+    <string name="follow">팔로잉</string>
+    <string name="unfollow">팔로우하기</string>
 
     <!-- 기타 -->
     <string name="home_title_text">지금 세계에서 무슨 일이 일어나고 있는지 알아보세요</string>

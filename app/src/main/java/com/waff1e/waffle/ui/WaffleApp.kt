@@ -108,7 +108,6 @@ fun WaffleTopAppBar(
             when (type) {
                 TopAppbarType.PostWaffle -> {
                     PostWaffleButton(
-                        modifier = modifier,
                         onAction = onAction,
                         enableAction = enableAction,
                         text = actionBtnText
@@ -137,6 +136,7 @@ fun PostWaffleButton(
     onAction: () -> Unit,
     enableAction: Boolean,
     text: String,
+    hasHorizontalPadding: Boolean = true
 ) {
     var defenderDoubleClick by remember {
         mutableStateOf(true)
@@ -152,7 +152,7 @@ fun PostWaffleButton(
     Button(
         modifier = modifier
             .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = if (hasHorizontalPadding) 10.dp else 0.dp),
         onClick = {
             if (defenderDoubleClick) {
                 defenderDoubleClick = false

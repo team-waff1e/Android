@@ -450,7 +450,7 @@ fun WaffleListCard(
                     .size(50.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onBackground)
-                    .clickableSingle {
+                    .clickableSingle(disableRipple = true) {
                         onProfileImageClicked(
                             if (LoginUser.nickname == item.owner.nickname) null
                             else item.owner.id!!.toString()
