@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.waff1e.waffle.auth.data.AuthRepository
 import com.waff1e.waffle.di.LIMIT
 import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.di.LoginUserPreferenceModule
@@ -26,6 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WaffleListViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
     private val waffleRepository: WaffleRepository,
     private val memberRepository: MemberRepository,
     private val loginUserPreference: LoginUserPreferenceModule,
@@ -102,13 +104,12 @@ class WaffleListViewModel @Inject constructor(
     suspend fun requestWaffleLike(id: Long) {
         // TODO. 포스트맨으로만 테스트하면 에러남
         val idx = waffleListUiState.waffleList.indexOfFirst { it.id == id }
-        if (waffleListUiState.waffleList[idx].liked) {
 
-        } else {
-
-        }
-
-//        val responseResult = waffleRepository.likeWaffle(id)
+//        val responseResult = if (waffleListUiState.waffleList[idx].liked) {
+//            waffleRepository.likeWaffle(id)
+//        } else {
+//            waffleRepository.unlikeWaffle(id)
+//        }
 //
 //        if (responseResult.isSuccessful) {
 //            val waffle = responseResult.body()!!
@@ -123,5 +124,6 @@ class WaffleListViewModel @Inject constructor(
 
     suspend fun logout() {
         loginUserPreference.removeJSESSIONID()
+        authRepository.logout()
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.waff1e.waffle.auth.data.AuthRepository
 import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.dto.ResponseResult
 import com.waff1e.waffle.dto.check
@@ -19,6 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
     private val memberRepository: MemberRepository,
     private val loginUserPreference: LoginUserPreferenceModule,
 ) : ViewModel() {
@@ -41,5 +43,6 @@ class EditProfileViewModel @Inject constructor(
 
     suspend fun logout() {
         loginUserPreference.removeJSESSIONID()
+        authRepository.logout()
     }
 }

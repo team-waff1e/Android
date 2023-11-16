@@ -23,7 +23,7 @@ class EditWaffleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val waffleRepository: WaffleRepository,
 ) : ViewModel() {
-    private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditWaffle.waffleId])
+    private val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditWaffle.WAFFLE_ID])
     var waffleUiState by mutableStateOf(WaffleUiState())
     private var _content by mutableStateOf("")
     val content: String get() = _content

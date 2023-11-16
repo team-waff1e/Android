@@ -105,10 +105,11 @@ fun WaffleListScreen(
     modifier: Modifier = Modifier,
     viewModel: WaffleListViewModel = hiltViewModel(),
     navigateToWaffle: (Long) -> Unit,
-    navigateToProfile: () -> Unit,
+    navigateToMyProfile: () -> Unit,
     navigateToPostWaffle: () -> Unit,
     navigateToHome: () -> Unit,
     navigateToEditWaffle: (Long) -> Unit,
+    navigateToProfile: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -183,7 +184,7 @@ fun WaffleListScreen(
                     },
                     onProfileClicked = {
                         coroutineScope.launch {
-                            navigateToProfile()
+                            navigateToMyProfile()
                             drawerState.apply { close() }
                         }
                     }
@@ -240,6 +241,9 @@ fun WaffleListScreen(
 
                         if (isMine) showEditDeletePopUpMenu = true else showReportPopUpMenu = true
                     },
+                    onProfileImageClicked = { memberId ->
+                        navigateToProfile(memberId)
+                    }
                 )
             }
         }
@@ -293,6 +297,7 @@ fun WafflesBody(
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
+    onProfileImageClicked: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -320,7 +325,8 @@ fun WafflesBody(
             nestedScrollConnection = nestedScrollConnection,
             getWaffleList = getWaffleList,
             onLikeBtnClicked = onLikeBtnClicked,
-            onShowPopUpMenuClicked = onShowPopUpMenuClicked
+            onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+            onProfileImageClicked = onProfileImageClicked
         )
 
         PullRefreshIndicator(
@@ -340,6 +346,7 @@ fun WaffleListLazyColumn(
     getWaffleList: suspend (Boolean) -> Unit,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
+    onProfileImageClicked: (String?) -> Unit
 ) {
     var isInitializing by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
@@ -388,7 +395,8 @@ fun WaffleListLazyColumn(
                         onLikeClick = {
                             onLikeBtnClicked(it)
                         },
-                        onShowPopUpMenuClicked = onShowPopUpMenuClicked
+                        onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+                        onProfileImageClicked = onProfileImageClicked
                     )
 
                     Box(modifier = Modifier.size(10.dp))
@@ -416,6 +424,7 @@ fun WaffleListCard(
     onItemClick: (Waffle) -> Unit,
     onLikeClick: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
+    onProfileImageClicked: (String?) -> Unit
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -440,7 +449,13 @@ fun WaffleListCard(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onBackground),
+                    .background(MaterialTheme.colorScheme.onBackground)
+                    .clickableSingle {
+                        onProfileImageClicked(
+                            if (LoginUser.nickname == item.owner.nickname) null
+                            else item.owner.id!!.toString()
+                        )
+                    },
                 imageVector = ImageVector.vectorResource(id = R.drawable.person),
                 contentDescription = stringResource(id = R.string.profile_img),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
@@ -693,7 +708,8 @@ fun WafflesPreview() {
         ),
         onItemClick = { },
         onLikeClick = { },
-        onShowPopUpMenuClicked = { a: Boolean, b: Long -> }
+        onShowPopUpMenuClicked = { _: Boolean, _: Long -> },
+        onProfileImageClicked = { _: String? -> }
     )
 }
 

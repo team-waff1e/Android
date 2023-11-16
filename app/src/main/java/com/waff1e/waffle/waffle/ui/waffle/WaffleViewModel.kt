@@ -26,7 +26,7 @@ class WaffleViewModel @Inject constructor(
     private val commentRepository: CommentRepository,
 ) : ViewModel() {
     private val waffleId: Long =
-        checkNotNull(savedStateHandle[NavigationDestination.Waffle.waffleId])
+        checkNotNull(savedStateHandle[NavigationDestination.Waffle.WAFFLE_ID])
     var waffleUiState by mutableStateOf(WaffleUiState())
     var commentContent by mutableStateOf("")
 
@@ -100,7 +100,11 @@ class WaffleViewModel @Inject constructor(
     suspend fun requestWaffleLike(id: Long) {
         // TODO. 포스트맨으로만 테스트하면 에러남
 //        val idx = waffleListUiState.waffleList.indexOfFirst { it.id == id }
-//        val responseResult = waffleRepository.likeWaffle(id)
+//        val responseResult = if (waffleListUiState.waffleList[idx].liked) {
+//            waffleRepository.likeWaffle(id)
+//        } else {
+//            waffleRepository.unlikeWaffle(id)
+//        }
 //
 //        if (responseResult.isSuccessful) {
 //            val waffle = responseResult.body()!!

@@ -12,7 +12,6 @@ import com.waff1e.waffle.dto.DefaultResponse
 import com.waff1e.waffle.dto.ResponseResult
 import com.waff1e.waffle.dto.check
 import com.waff1e.waffle.ui.navigation.NavigationDestination
-import com.waff1e.waffle.waffle.dto.PostWaffleRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -23,8 +22,8 @@ class EditCommentViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val commentRepository: CommentRepository,
 ): ViewModel() {
-    val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditComment.waffleId])
-    private val commentId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditComment.commentId])
+    val waffleId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditComment.WAFFLE_ID])
+    private val commentId: Long = checkNotNull(savedStateHandle[NavigationDestination.EditComment.COMMENT_ID])
     var editCommentUiState = EditCommentUiState()
     private var _content by mutableStateOf("")
     val content: String get() = _content
@@ -32,6 +31,7 @@ class EditCommentViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getComment()
+            setContent(editCommentUiState.content!!)
         }
     }
 

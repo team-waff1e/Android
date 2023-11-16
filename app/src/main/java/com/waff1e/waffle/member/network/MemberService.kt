@@ -17,13 +17,14 @@ import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface MemberService {
     @GET("members")
     suspend fun getMyProfile(): Response<Member>
 
     @GET("members/{memberId}")
-    suspend fun getProfileById(id: Long): Response<Member>
+    suspend fun getProfileById(@Path("memberId") id: Long): Response<Member>
 
     @HTTP(method = "DELETE", path = "members", hasBody = true)
     suspend fun deleteMyProfile(@Body pwd: PasswordRequest): Response<DefaultResponse>

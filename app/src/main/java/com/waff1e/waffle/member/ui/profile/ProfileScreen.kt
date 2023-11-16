@@ -1,12 +1,16 @@
 package com.waff1e.waffle.member.ui.profile
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,6 +52,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
+import com.waff1e.waffle.ui.WaffleEditDeleteMenu
+import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TabItem
@@ -68,7 +75,8 @@ fun ProfileScreen(
     canNavigationBack: Boolean = true,
     navigateToWaffle: (Long) -> Unit,
     navigateToPostWaffle: () -> Unit,
-    navigateToEditProfile: () -> Unit
+    navigateToEditWaffle: (Long) -> Unit,
+    navigateToEditProfile: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isFABVisible by remember { mutableStateOf(true) }
@@ -89,7 +97,9 @@ fun ProfileScreen(
         }
     }
 
-    var showPopUpMenu by remember { mutableStateOf(false) }
+    var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
+    var showReportPopUpMenu by remember { mutableStateOf(false) }
+    var clickedWaffleId by remember { mutableLongStateOf(0L) }
 
     BackHandler {
         if (isFABExpanded) {
@@ -99,47 +109,97 @@ fun ProfileScreen(
         }
     }
 
-    Scaffold(
+    Box(
         modifier = modifier
-            .background(Color.Transparent),
-        topBar = {
-            WaffleTopAppBar(
-                hasNavigationIcon = canNavigationBack,
-                navigationIconClicked = navigateBack,
-                title = "",
-                type = TopAppbarType.Profile,
-                onAction = { navigateToEditProfile() },
-                actionIcon = Icons.Filled.Settings
-            )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            WaffleListFAB(
-                isFABVisible = { isFABVisible },
-                isFABExpanded = { isFABExpanded },
-                changeFabExpandedState = { isFABExpanded = true },
-                navigateToPostWaffle = navigateToPostWaffle
+            .fillMaxSize()
+    ) {
+        Scaffold(
+            modifier = modifier
+                .background(Color.Transparent),
+            topBar = {
+                WaffleTopAppBar(
+                    hasNavigationIcon = canNavigationBack,
+                    navigationIconClicked = navigateBack,
+                    title = "",
+                    type = TopAppbarType.Profile,
+                    onAction = { navigateToEditProfile() },
+                    actionIcon = Icons.Filled.Settings
+                )
+            },
+            floatingActionButtonPosition = FabPosition.End,
+            floatingActionButton = {
+                WaffleListFAB(
+                    isFABVisible = { isFABVisible },
+                    isFABExpanded = { isFABExpanded },
+                    changeFabExpandedState = { isFABExpanded = true },
+                    navigateToPostWaffle = navigateToPostWaffle
+                )
+            }
+        ) { innerPadding ->
+            ProfileBody(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                myProfile = { viewModel.profile },
+                getMyWaffleList = viewModel::getWaffleListByMemberId,
+                myWaffleListUiState = { viewModel.waffleListUiState },
+                onWaffleClick = navigateToWaffle,
+                nestedScrollConnection = nestedScrollConnection,
+                onLikeBtnClicked = { id ->
+                    viewModel.waffleListUiState.waffleList.updateLikes(id)
+
+                    coroutineScope.launch {
+                        viewModel.requestWaffleLike(id)
+                    }
+                },
+                changeClickedWaffleId = { id ->
+                    clickedWaffleId = id
+                },
+                changeShowEditDeletePopUpMenu = {
+                    showEditDeletePopUpMenu = true
+                },
+                changeShowReportPopUpMenu = {
+                    showReportPopUpMenu = true
+                }
             )
         }
-    ) { innerPadding ->
-        ProfileBody(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            myProfile = { viewModel.myProfile },
-            getMyWaffleList = viewModel::getMyWaffleList,
-            myWaffleListUiState = { viewModel.myWaffleListUiState },
-            onWaffleClick = navigateToWaffle,
-            nestedScrollConnection = nestedScrollConnection,
-            onLikeBtnClicked = { id ->
-                viewModel.myWaffleListUiState.waffleList.updateLikes(id)
 
-                coroutineScope.launch {
-                    viewModel.requestWaffleLike(id)
-                }
-            },
-            showPopUpMenu = showPopUpMenu
-        )
+        AnimatedVisibility(
+            visible = showEditDeletePopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleEditDeleteMenu(
+                onDismiss = { showEditDeletePopUpMenu = false },
+                onEditClicked = {
+                    navigateToEditWaffle(clickedWaffleId)
+                },
+                onDeleteClicked = {
+                    coroutineScope.launch {
+                        viewModel.removeWaffle(clickedWaffleId)
+                    }
+                },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showReportPopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleReportMenu(
+                onDismiss = { showReportPopUpMenu = false },
+                onReportClicked = { },
+            )
+        }
     }
 }
 
@@ -152,7 +212,9 @@ fun ProfileBody(
     onWaffleClick: (Long) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit,
-    showPopUpMenu: Boolean
+    changeClickedWaffleId: (Long) -> Unit,
+    changeShowEditDeletePopUpMenu: () -> Unit,
+    changeShowReportPopUpMenu: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -195,7 +257,9 @@ fun ProfileBody(
             onWaffleClick = onWaffleClick,
             nestedScrollConnection = nestedScrollConnection,
             onLikeBtnClicked = onLikeBtnClicked,
-            showPopUpMenu = showPopUpMenu
+            changeClickedWaffleId = changeClickedWaffleId,
+            changeShowEditDeletePopUpMenu = changeShowEditDeletePopUpMenu,
+            changeShowReportPopUpMenu = changeShowReportPopUpMenu
         )
     }
 }
@@ -209,12 +273,14 @@ fun ProfileTab(
     onWaffleClick: (Long) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit,
-    showPopUpMenu: Boolean
+    changeClickedWaffleId: (Long) -> Unit,
+    changeShowEditDeletePopUpMenu: () -> Unit,
+    changeShowReportPopUpMenu: () -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Like)
     var selectedTabIdx by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState { tabItems.size }
-    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -274,7 +340,12 @@ fun ProfileTab(
                                 onLikeBtnClicked(it)
                             }
                         },
-                        onShowPopUpMenuClicked = { a: Boolean, b:Long -> },
+                        onShowPopUpMenuClicked = { isMine, id ->
+                            changeClickedWaffleId(id)
+
+                            if (isMine) changeShowEditDeletePopUpMenu() else changeShowReportPopUpMenu()
+                        },
+                        onProfileImageClicked = { _: String? -> }
                     )
                 }
 
