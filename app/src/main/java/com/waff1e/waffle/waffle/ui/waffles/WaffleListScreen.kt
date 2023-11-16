@@ -1,7 +1,6 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -11,10 +10,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,11 +54,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,23 +74,27 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.di.LIMIT
+import com.waff1e.waffle.di.LoginUser
+import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.ui.WaffleDivider
+import com.waff1e.waffle.ui.WaffleEditDeleteMenu
+import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.WaffleTopAppBar
-import com.waff1e.waffle.ui.isEnd
-import com.waff1e.waffle.ui.loadingEffect
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
+import com.waff1e.waffle.utils.isEnd
+import com.waff1e.waffle.utils.loadingEffect
 import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.dto.Waffle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -101,9 +105,11 @@ fun WaffleListScreen(
     modifier: Modifier = Modifier,
     viewModel: WaffleListViewModel = hiltViewModel(),
     navigateToWaffle: (Long) -> Unit,
-    navigateToProfile: () -> Unit,
+    navigateToMyProfile: () -> Unit,
     navigateToPostWaffle: () -> Unit,
     navigateToHome: () -> Unit,
+    navigateToEditWaffle: (Long) -> Unit,
+    navigateToProfile: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -135,11 +141,19 @@ fun WaffleListScreen(
         }
     }
 
+    var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
+    var showReportPopUpMenu by remember { mutableStateOf(false) }
+    var clickedWaffleId by remember { mutableLongStateOf(0L) }
+
     BackHandler {
         if (drawerState.isOpen) {
             coroutineScope.launch {
                 drawerState.apply { close() }
             }
+        } else if (showEditDeletePopUpMenu) {
+            showEditDeletePopUpMenu = false
+        } else if (showReportPopUpMenu) {
+            showReportPopUpMenu = false
         } else if (isFABExpanded) {
             isFABExpandedScrollUp = false
         } else if (System.currentTimeMillis() - backWait >= 2000) {
@@ -154,69 +168,120 @@ fun WaffleListScreen(
         }
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            WaffleListDrawerSheet(
-                onLogoutClicked = {
-                    coroutineScope.launch {
-                        viewModel.logout()
-                        navigateToHome()
-                    }
-                },
-                onProfileClicked = {
-                    coroutineScope.launch {
-                        navigateToProfile()
-                        drawerState.apply { close() }
-                    }
-                }
-            )
-        },
-        scrimColor = Color.Black.copy(alpha = 0.7f)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
     ) {
-        Scaffold(
-            modifier = modifier
-                .background(Color.Transparent)
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                WaffleTopAppBar(
-                    hasNavigationIcon = true,
-                    navigationIconClicked = {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                WaffleListDrawerSheet(
+                    onLogoutClicked = {
                         coroutineScope.launch {
-                            drawerState.apply {
-                                if (isClosed) open() else close()
-                            }
+                            viewModel.logout()
+                            navigateToHome()
                         }
                     },
-                    navigationIcon = Icons.Filled.AccountCircle,
-                    scrollBehavior = scrollBehavior
+                    onProfileClicked = {
+                        coroutineScope.launch {
+                            navigateToMyProfile()
+                            drawerState.apply { close() }
+                        }
+                    }
                 )
             },
-            floatingActionButtonPosition = FabPosition.End,
-            floatingActionButton = {
-                WaffleListFAB(
-                    isFABVisible = { isFABVisible },
-                    isFABExpanded = { isFABExpanded },
-                    changeFabExpandedState = { isFABExpandedScrollUp = true },
-                    navigateToPostWaffle = navigateToPostWaffle
+            scrimColor = Color.Black.copy(alpha = 0.7f)
+        ) {
+            Scaffold(
+                modifier = modifier
+                    .background(Color.Transparent)
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                topBar = {
+                    WaffleTopAppBar(
+                        hasNavigationIcon = true,
+                        navigationIconClicked = {
+                            coroutineScope.launch {
+                                drawerState.apply {
+                                    if (isClosed) open() else close()
+                                }
+                            }
+                        },
+                        navigationIcon = Icons.Filled.AccountCircle,
+                        scrollBehavior = scrollBehavior
+                    )
+                },
+                floatingActionButtonPosition = FabPosition.End,
+                floatingActionButton = {
+                    WaffleListFAB(
+                        isFABVisible = { isFABVisible },
+                        isFABExpanded = { isFABExpanded },
+                        changeFabExpandedState = { isFABExpandedScrollUp = true },
+                        navigateToPostWaffle = navigateToPostWaffle
+                    )
+                }
+            ) { innerPadding ->
+                WafflesBody(
+                    modifier = modifier
+                        .padding(innerPadding)
+                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                    onWaffleClick = { navigateToWaffle(it.id) },
+                    list = viewModel.waffleListUiState.waffleList,
+                    getWaffleList = viewModel::getWaffleList,
+                    nestedScrollConnection = nestedScrollConnection,
+                    onLikeBtnClicked = { id ->
+                        viewModel.waffleListUiState.waffleList.updateLikes(id)
+
+                        coroutineScope.launch {
+                            viewModel.requestWaffleLike(id)
+                        }
+                    },
+                    onShowPopUpMenuClicked = { isMine, id ->
+                        clickedWaffleId = id
+                        isFABScrollUp = false
+
+                        if (isMine) showEditDeletePopUpMenu = true else showReportPopUpMenu = true
+                    },
+                    onProfileImageClicked = { memberId ->
+                        navigateToProfile(memberId)
+                    }
                 )
             }
-        ) { innerPadding ->
-            WafflesBody(
-                modifier = modifier
-                    .padding(innerPadding)
-                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-                onWaffleClick = { navigateToWaffle(it.id) },
-                list = viewModel.waffleListUiState.waffleList,
-                getWaffleList = viewModel::getWaffleList,
-                nestedScrollConnection = nestedScrollConnection,
-                onLikeBtnClicked = { id ->
-                    viewModel.waffleListUiState.waffleList.updateLikes(id)
+        }
 
+        AnimatedVisibility(
+            visible = showEditDeletePopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleEditDeleteMenu(
+                onDismiss = { showEditDeletePopUpMenu = false },
+                onEditClicked = {
+                    navigateToEditWaffle(clickedWaffleId)
+                },
+                onDeleteClicked = {
                     coroutineScope.launch {
-                        viewModel.requestWaffleLike(id)
+                        viewModel.removeWaffle(clickedWaffleId)
                     }
-                }
+                },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showReportPopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleReportMenu(
+                onDismiss = { showReportPopUpMenu = false },
+                onReportClicked = { },
             )
         }
     }
@@ -227,10 +292,12 @@ fun WaffleListScreen(
 fun WafflesBody(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
-    list: MutableList<Waffle>,
+    list: List<Waffle>,
     getWaffleList: suspend (Boolean) -> Unit,
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: (Long) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
+    onProfileImageClicked: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -257,7 +324,9 @@ fun WafflesBody(
             list = list,
             nestedScrollConnection = nestedScrollConnection,
             getWaffleList = getWaffleList,
-            onLikeBtnClicked = onLikeBtnClicked
+            onLikeBtnClicked = onLikeBtnClicked,
+            onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+            onProfileImageClicked = onProfileImageClicked
         )
 
         PullRefreshIndicator(
@@ -272,13 +341,16 @@ fun WafflesBody(
 fun WaffleListLazyColumn(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
-    list: MutableList<Waffle>,
+    list: List<Waffle>,
     nestedScrollConnection: NestedScrollConnection,
     getWaffleList: suspend (Boolean) -> Unit,
     onLikeBtnClicked: (Long) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
+    onProfileImageClicked: (String?) -> Unit
 ) {
     var isInitializing by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
+
     val lazyListState = rememberLazyListState()
     val isEnd by remember { derivedStateOf { lazyListState.isEnd() } }
 
@@ -322,7 +394,9 @@ fun WaffleListLazyColumn(
                         onItemClick = onWaffleClick,
                         onLikeClick = {
                             onLikeBtnClicked(it)
-                        }
+                        },
+                        onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+                        onProfileImageClicked = onProfileImageClicked
                     )
 
                     Box(modifier = Modifier.size(10.dp))
@@ -349,6 +423,8 @@ fun WaffleListCard(
     item: Waffle,
     onItemClick: (Waffle) -> Unit,
     onLikeClick: (Long) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
+    onProfileImageClicked: (String?) -> Unit
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -373,7 +449,13 @@ fun WaffleListCard(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onBackground),
+                    .background(MaterialTheme.colorScheme.onBackground)
+                    .clickableSingle(disableRipple = true) {
+                        onProfileImageClicked(
+                            if (LoginUser.nickname == item.owner.nickname) null
+                            else item.owner.id!!.toString()
+                        )
+                    },
                 imageVector = ImageVector.vectorResource(id = R.drawable.person),
                 contentDescription = stringResource(id = R.string.profile_img),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
@@ -425,7 +507,13 @@ fun WaffleListCard(
 
                         Icon(
                             modifier = Modifier
-                                .size(20.dp),
+                                .size(20.dp)
+                                .clickableSingle(disableRipple = true) {
+                                    onShowPopUpMenuClicked(
+                                        LoginUser.nickname == item.owner.nickname,
+                                        item.id
+                                    )
+                                },
                             imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                             contentDescription = stringResource(id = R.string.waffle_option),
                             tint = MaterialTheme.colorScheme.onBackground
@@ -601,11 +689,27 @@ fun WaffleListFAB(
 @Composable
 @Preview
 fun WafflesPreview() {
-    WaffleListScreen(
-        navigateToWaffle = { },
-        navigateToProfile = { },
-        navigateToHome = { },
-        navigateToPostWaffle = { },
+    WaffleListCard(
+        modifier = Modifier,
+        item = Waffle(
+            id = 1L,
+            liked = true,
+            content = "내용입니다!",
+            updatedAt = LocalDateTime.now().toKotlinLocalDateTime(),
+            createdAt = LocalDateTime.now().toKotlinLocalDateTime(),
+            commentCount = 1,
+            likesCount = 1,
+            owner = Member(
+                id = 1L,
+                nickname = "닉네임",
+                profileUrl = "",
+                email = ""
+            )
+        ),
+        onItemClick = { },
+        onLikeClick = { },
+        onShowPopUpMenuClicked = { _: Boolean, _: Long -> },
+        onProfileImageClicked = { _: String? -> }
     )
 }
 

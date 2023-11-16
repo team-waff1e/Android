@@ -1,6 +1,5 @@
 package com.waff1e.waffle.ui.navigation
 
-import android.view.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -10,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.waff1e.waffle.auth.ui.login.LoginScreen
 import com.waff1e.waffle.auth.ui.signup.SignupScreen
+import com.waff1e.waffle.comment.ui.editcomment.EditCommentScreen
 import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.member.ui.change_nickname.ChangeNicknameScreen
 import com.waff1e.waffle.member.ui.change_password.ChangePasswordScreen
@@ -17,8 +17,11 @@ import com.waff1e.waffle.member.ui.edit_profile.EditProfileScreen
 import com.waff1e.waffle.member.ui.profile.ProfileScreen
 import com.waff1e.waffle.member.ui.profile_detail.ProfileDetailScreen
 import com.waff1e.waffle.ui.home.HomeScreen
+import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangeNickname
 import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangePassword
+import com.waff1e.waffle.ui.navigation.NavigationDestination.EditComment
 import com.waff1e.waffle.ui.navigation.NavigationDestination.EditProfile
+import com.waff1e.waffle.ui.navigation.NavigationDestination.EditWaffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Home
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Login
 import com.waff1e.waffle.ui.navigation.NavigationDestination.PostWaffle
@@ -27,19 +30,18 @@ import com.waff1e.waffle.ui.navigation.NavigationDestination.ProfileDetail
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Signup
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffle
 import com.waff1e.waffle.ui.navigation.NavigationDestination.Waffles
-import com.waff1e.waffle.ui.navigation.NavigationDestination.ChangeNickname
 import com.waff1e.waffle.utils.WaffleAnimation.fadeIn
 import com.waff1e.waffle.utils.WaffleAnimation.fadeOut
 import com.waff1e.waffle.utils.WaffleAnimation.slideInLeft
 import com.waff1e.waffle.utils.WaffleAnimation.slideInUp
 import com.waff1e.waffle.utils.WaffleAnimation.slideOutDown
 import com.waff1e.waffle.utils.WaffleAnimation.slideOutRight
+import com.waff1e.waffle.waffle.ui.editwaffle.EditWaffleScreen
 import com.waff1e.waffle.waffle.ui.postwaffle.PostWaffleScreen
 import com.waff1e.waffle.waffle.ui.waffle.WaffleScreen
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @Composable
 fun WaffleNavHost(
@@ -64,14 +66,10 @@ fun WaffleNavHost(
         composable(route = Home.route) {
             HomeScreen(
                 navigateToLogin = {
-                    navController.navigate(Login.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Login.route)
                 },
                 navigateToSignup = {
-                    navController.navigate(Signup.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Signup.route)
                 }
             )
         }
@@ -90,7 +88,7 @@ fun WaffleNavHost(
                 },
                 navigateToWaffles = {
                     navController.navigate(Waffles.route) {
-                        popUpTo(Home.route) { inclusive = true }
+                        popUpTo(Waffles.route) { inclusive = true }
                     }
                 }
             )
@@ -120,16 +118,11 @@ fun WaffleNavHost(
             route = Waffles.route
         ) {
             WaffleListScreen(
-                navigateToWaffle = {
-                    navController.navigate(route = "${Waffle.route}/${it}") {
-                        launchSingleTop = true
-                    }
+                navigateToWaffle = { waffleId ->
+                    navController.navigate(route = "${Waffle.route}?waffleId=${waffleId}")
                 },
-                navigateToProfile = {
-                    navController.navigate(route = Profile.route) {
-                        launchSingleTop = true
-                        popUpTo(Waffles.route) { inclusive = false }
-                    }
+                navigateToMyProfile = {
+                    navController.navigate(route = Profile.route)
                 },
                 navigateToHome = {
                     navController.navigate(route = Home.route) {
@@ -138,17 +131,21 @@ fun WaffleNavHost(
                     }
                 },
                 navigateToPostWaffle = {
-                    navController.navigate(PostWaffle.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(PostWaffle.route)
+                },
+                navigateToEditWaffle = { waffleId ->
+                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}")
+                },
+                navigateToProfile = { memberId ->
+                    navController.navigate(route = "${Profile.route}?memberId=${memberId}")
                 }
             )
         }
 
         // Waffle (단일 게시글 조회)
         composable(
-            route = "${Waffle.route}/{${Waffle.waffleArg}}",
-            arguments = listOf(navArgument(Waffle.waffleArg) { type = NavType.LongType }),
+            route = "${Waffle.route}?waffleId={${Waffle.WAFFLE_ID}}",
+            arguments = listOf(navArgument(Waffle.WAFFLE_ID) { type = NavType.LongType }),
             enterTransition = slideInLeft,
             exitTransition = fadeOut,
             popExitTransition = slideOutRight,
@@ -156,28 +153,36 @@ fun WaffleNavHost(
         ) {
             WaffleScreen(
                 navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack()
                 },
+                navigateToWaffleList = {
+                    navController.navigate(Waffles.route) {
+                        popUpTo(Waffles.route) { inclusive = true }
+                    }
+                },
+                navigateToEditWaffle = { waffleId ->
+                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}")
+                },
+                navigateToEditComment = { waffleId, commentId ->
+                    navController.navigate(route = "${EditComment.route}?waffleId=${waffleId}&commentId=${commentId}")
+                },
+                navigateToProfile = { memberId ->
+                    navController.navigate(route = "${Profile.route}?memberId=${memberId}")
+                }
             )
         }
 
         // PostWaffle (게시글 작성)
         composable(
             route = PostWaffle.route,
-            enterTransition = slideInLeft,
-            exitTransition = slideOutRight,
-            popExitTransition = slideOutRight,
-            popEnterTransition = slideInLeft,
+            enterTransition = slideInUp,
+            exitTransition = slideOutDown,
+            popExitTransition = slideOutDown,
+            popEnterTransition = slideInUp,
         ) {
             PostWaffleScreen(
                 navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack()
                 },
                 navigateToWaffles = {
                     navController.navigate(route = Waffles.route) {
@@ -189,7 +194,11 @@ fun WaffleNavHost(
 
         // 프로필
         composable(
-            route = Profile.route,
+            route = "${Profile.route}?memberId={${Profile.MEMBER_ID}}",
+            arguments = listOf(navArgument(Profile.MEMBER_ID) {
+                nullable = true
+                type = NavType.StringType
+            }),
             enterTransition = slideInLeft,
             exitTransition = fadeOut,
             popExitTransition = slideOutRight,
@@ -197,21 +206,19 @@ fun WaffleNavHost(
         ) {
             ProfileScreen(
                 navigateBack = {
-                    navController.popBackStack(
-                        route = Waffles.route,
-                        inclusive = false
-                    )
+                    navController.popBackStack()
                 },
-                navigateToWaffle = { navController.navigate(route = "${Waffle.route}/${it}") },
+                navigateToWaffle = { waffleId ->
+                    navController.navigate(route = "${Waffle.route}?waffleId=${waffleId}")
+                },
                 navigateToPostWaffle = {
-                    navController.navigate(PostWaffle.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(PostWaffle.route)
                 },
                 navigateToEditProfile = {
-                    navController.navigate(route = EditProfile.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = EditProfile.route)
+                },
+                navigateToEditWaffle = { waffleId ->
+                    navController.navigate(route = "${EditWaffle.route}?waffleId=${waffleId}")
                 }
             )
         }
@@ -232,9 +239,7 @@ fun WaffleNavHost(
                     )
                 },
                 navigateToProfileDetail = {
-                    navController.navigate(route = ProfileDetail.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = ProfileDetail.route)
                 },
                 navigateToHome = {
                     navController.navigate(route = Home.route) {
@@ -243,14 +248,10 @@ fun WaffleNavHost(
                     }
                 },
                 navigateToChangePassword = {
-                    navController.navigate(route = ChangePassword.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = ChangePassword.route)
                 },
                 navigateToChangeNickname = {
-                    navController.navigate(route = ChangeNickname.route) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(route = ChangeNickname.route)
                 }
             )
         }
@@ -305,6 +306,57 @@ fun WaffleNavHost(
                         route = EditProfile.route,
                         inclusive = false
                     )
+                }
+            )
+        }
+
+        // Waffle 수정
+        composable(
+            route = "${EditWaffle.route}?waffleId={${EditWaffle.WAFFLE_ID}}",
+            arguments = listOf(navArgument(EditWaffle.WAFFLE_ID) { type = NavType.LongType }),
+            enterTransition = slideInLeft,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight,
+        ) {
+            EditWaffleScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
+                navigateToWaffles = {
+                    navController.navigate(route = Waffles.route) {
+                        popUpTo(Waffles.route) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        // Comment 수정
+        composable(
+            route = "${EditComment.route}?waffleId={${EditComment.WAFFLE_ID}}&commentId={${EditComment.COMMENT_ID}}",
+            arguments = listOf(
+                navArgument(EditComment.WAFFLE_ID) { type = NavType.LongType },
+                navArgument(EditComment.COMMENT_ID) { type = NavType.LongType }
+            ),
+            enterTransition = slideInLeft,
+            popEnterTransition = slideInLeft,
+            exitTransition = slideOutRight,
+            popExitTransition = slideOutRight,
+        ) {
+            EditCommentScreen(
+                navigateBack = {
+                    navController.popBackStack(
+                        route = Waffles.route,
+                        inclusive = false
+                    )
+                },
+                navigateToWaffle = { waffleId ->
+                    navController.navigate(route = "${Waffle.route}/${waffleId}") {
+                        popUpTo(Waffles.route) { inclusive = false }
+                    }
                 }
             )
         }

@@ -1,15 +1,21 @@
 package com.waff1e.waffle.waffle.ui.waffle
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,12 +58,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.comment.dto.Comment
+import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.ui.PostWaffleButton
 import com.waff1e.waffle.ui.WaffleDivider
+import com.waff1e.waffle.ui.WaffleEditDeleteMenu
+import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.WaffleTopAppBar
-import com.waff1e.waffle.ui.isEnd
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
+import com.waff1e.waffle.utils.isEnd
 import com.waff1e.waffle.waffle.dto.Waffle
 import com.waff1e.waffle.waffle.dto.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.LoadingWaffle
@@ -66,6 +76,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+enum class WaffleScreenType {
+    WAFFLE, COMMENT
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaffleScreen(
@@ -73,39 +87,126 @@ fun WaffleScreen(
     viewModel: WaffleViewModel = hiltViewModel(),
     canNavigationBack: Boolean = true,
     navigateBack: () -> Unit,
+    navigateToWaffleList: () -> Unit,
+    navigateToEditWaffle: (Long) -> Unit,
+    navigateToEditComment: (Long, Long) -> Unit,
+    navigateToProfile: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
+    var showReportPopUpMenu by remember { mutableStateOf(false) }
+    var selectedContentType by remember { mutableStateOf(WaffleScreenType.WAFFLE) }
+    var clickedWaffleId by remember { mutableLongStateOf(0L) }
+    var clickedCommentId by remember { mutableLongStateOf(0L) }
 
-    Scaffold(
+
+    Box(
         modifier = modifier
-            .background(Color.Transparent),
-        topBar = {
-            WaffleTopAppBar(
-                hasNavigationIcon = canNavigationBack,
-                navigationIconClicked = navigateBack
-            )
-        },
-    ) { innerPadding ->
-        WaffleBody(
+            .fillMaxSize()
+    ) {
+        Scaffold(
             modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            waffleUiState = { viewModel.waffleUiState },
-            onLikeBtnClicked = { id ->
-                viewModel.waffleUiState.waffle?.updateLikes()
-
-                coroutineScope.launch {
-                    viewModel.requestWaffleLike(id)
-                }
+                .background(Color.Transparent),
+            topBar = {
+                WaffleTopAppBar(
+                    hasNavigationIcon = canNavigationBack,
+                    navigationIconClicked = navigateBack
+                )
             },
-            getCommentList = viewModel::getCommentList,
-            list = viewModel.waffleUiState.commentList,
-            navigateBack = navigateBack
-        )
+        ) { innerPadding ->
+            WaffleBody(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                waffleUiState = { viewModel.waffleUiState },
+                onLikeBtnClicked = { id ->
+                    viewModel.waffleUiState.waffle?.updateLikes()
+
+                    coroutineScope.launch {
+                        viewModel.requestWaffleLike(id)
+                    }
+                },
+                getCommentList = viewModel::getCommentList,
+                list = viewModel.waffleUiState.commentList,
+                navigateBack = navigateBack,
+                commentContent = viewModel.commentContent,
+                onCommentChange = {
+                    viewModel.commentContent = it
+                },
+                onPostCommentBtnClicked = {
+                    coroutineScope.launch {
+                        viewModel.postComment()
+                        viewModel.commentContent = ""
+                    }
+                },
+                onShowPopUpMenuClicked = { isMine, waffleId, commentId, type ->
+                    selectedContentType = type
+
+                    clickedWaffleId = waffleId
+                    if (type == WaffleScreenType.COMMENT) {
+                        clickedCommentId = commentId
+                    }
+
+                    if (isMine) showEditDeletePopUpMenu = true else showReportPopUpMenu = true
+                },
+                onProfileImageClicked = { nickname, memberId ->
+                    if (LoginUser.nickname == nickname) {
+                        navigateToProfile(null)
+                    } else {
+                        navigateToProfile(memberId.toString())
+                    }
+                }
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showEditDeletePopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleEditDeleteMenu(
+                onDismiss = { showEditDeletePopUpMenu = false },
+                onEditClicked = {
+                    if (selectedContentType == WaffleScreenType.WAFFLE) {
+                        navigateToEditWaffle(clickedWaffleId)
+                    } else {
+                        navigateToEditComment(clickedWaffleId, clickedCommentId)
+                    }
+                },
+                onDeleteClicked = {
+                    coroutineScope.launch {
+                        if (selectedContentType == WaffleScreenType.WAFFLE) {
+                            viewModel.removeWaffle(clickedWaffleId)
+                            navigateToWaffleList()
+                        } else {
+                            viewModel.removeComment(clickedWaffleId, clickedCommentId)
+                        }
+                    }
+                },
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showReportPopUpMenu,
+            enter = slideInVertically(
+                initialOffsetY = { it * 2 }
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it }
+            )
+        ) {
+            WaffleReportMenu(
+                onDismiss = { showReportPopUpMenu = false },
+                onReportClicked = { },
+            )
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaffleBody(
     modifier: Modifier = Modifier,
@@ -113,7 +214,12 @@ fun WaffleBody(
     onLikeBtnClicked: (Long) -> Unit,
     list: List<Comment>,
     getCommentList: suspend () -> Unit,
-    navigateBack: () -> Unit
+    navigateBack: () -> Unit,
+    commentContent: String,
+    onCommentChange: (String) -> Unit,
+    onPostCommentBtnClicked: () -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
+    onProfileImageClicked: (String, Long) -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -147,7 +253,7 @@ fun WaffleBody(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .imePadding()
+            .imePadding(),
     ) {
         Box(
             modifier = Modifier
@@ -163,7 +269,9 @@ fun WaffleBody(
                     } else if (waffle.waffle != null) {
                         WaffleCard(
                             item = waffle.waffle,
-                            onLikeBtnClicked = onLikeBtnClicked
+                            onLikeBtnClicked = onLikeBtnClicked,
+                            onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+                            onProfileImageClicked = onProfileImageClicked
                         )
                     } else {
                         // TODO. 응답 오류 처리 필요
@@ -195,6 +303,8 @@ fun WaffleBody(
                         CommentCard(
                             item = item,
                             onItemClick = { },
+                            onShowPopUpMenuClicked = onShowPopUpMenuClicked,
+                            onProfileImageClicked = onProfileImageClicked
                         )
                     }
                 }
@@ -210,30 +320,17 @@ fun WaffleBody(
             }
         }
 
-        // TODO. 답글 다는 기능
-        TextField(
+        CommentTextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .onFocusChanged { isFocused = it.hasFocus },
-            value = "",
-            onValueChange = {  },
-            placeholder = {
-                Text(text = "답글 게시하기")
+                .padding(start = 10.dp, end = 10.dp, bottom = 5.dp),
+            isFocused = { isFocused },
+            changeFocus = { hasFocus ->
+                isFocused = hasFocus
             },
-            shape =  RoundedCornerShape(20.dp),
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = MaterialTheme.colorScheme.onBackground,
-                containerColor = MaterialTheme.colorScheme.background,
-            )
+            commentContent = commentContent,
+            onCommentChange = onCommentChange,
+            onPostCommentBtnClicked = onPostCommentBtnClicked
         )
-
-        if (isFocused) {
-            PostWaffleButton(
-                onAction = {  },
-                enableAction = true,
-                text = "답글"
-            )
-        }
     }
 }
 
@@ -241,7 +338,9 @@ fun WaffleBody(
 fun WaffleCard(
     modifier: Modifier = Modifier,
     item: Waffle,
-    onLikeBtnClicked: (Long) -> Unit
+    onLikeBtnClicked: (Long) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
+    onProfileImageClicked: (String, Long) -> Unit
 ) {
     var isLike by remember {
         mutableStateOf(item.liked)
@@ -266,7 +365,10 @@ fun WaffleCard(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onBackground),
+                        .background(MaterialTheme.colorScheme.onBackground)
+                        .clickableSingle(disableRipple = true) {
+                            onProfileImageClicked(item.owner.nickname!!, item.owner.id!!)
+                        },
                     imageVector = ImageVector.vectorResource(id = R.drawable.person),
                     contentDescription = stringResource(id = R.string.profile_img),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
@@ -309,7 +411,15 @@ fun WaffleCard(
 
                     Icon(
                         modifier = Modifier
-                            .size(20.dp),
+                            .size(20.dp)
+                            .clickableSingle(disableRipple = true) {
+                                onShowPopUpMenuClicked(
+                                    item.owner.nickname == LoginUser.nickname,
+                                    item.id,
+                                    -1L,
+                                    WaffleScreenType.WAFFLE
+                                )
+                            },
                         imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                         contentDescription = stringResource(id = R.string.waffle_option),
                         tint = MaterialTheme.colorScheme.onBackground
@@ -360,7 +470,8 @@ fun WaffleCard(
             Icon(
                 modifier = Modifier
                     .size(20.dp),
-                imageVector = ImageVector.vectorResource(id =
+                imageVector = ImageVector.vectorResource(
+                    id =
                     if (isLike) R.drawable.favorite else R.drawable.empty_favorite
                 ),
                 contentDescription = stringResource(id = R.string.likes_cnt),
@@ -383,6 +494,8 @@ fun CommentCard(
     modifier: Modifier = Modifier,
     item: Comment,
     onItemClick: (Comment) -> Unit,
+    onShowPopUpMenuClicked: (Boolean, Long, Long, WaffleScreenType) -> Unit,
+    onProfileImageClicked: (String, Long) -> Unit
 ) {
     Card(
         modifier = modifier
@@ -399,9 +512,12 @@ fun CommentCard(
         ) {
             Image(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onBackground),
+                    .background(MaterialTheme.colorScheme.onBackground)
+                    .clickableSingle(disableRipple = true) {
+                        onProfileImageClicked(item.member.nickname!!, item.member.id!!)
+                    },
                 imageVector = ImageVector.vectorResource(id = R.drawable.person),
                 contentDescription = stringResource(id = R.string.profile_img),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
@@ -453,7 +569,15 @@ fun CommentCard(
 
                         Icon(
                             modifier = Modifier
-                                .size(20.dp),
+                                .size(20.dp)
+                                .clickableSingle(disableRipple = true) {
+                                    onShowPopUpMenuClicked(
+                                        item.member.nickname == LoginUser.nickname,
+                                        item.waffleId,
+                                        item.id,
+                                        WaffleScreenType.COMMENT
+                                    )
+                                },
                             imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                             contentDescription = stringResource(id = R.string.waffle_option),
                             tint = MaterialTheme.colorScheme.onBackground
@@ -465,6 +589,68 @@ fun CommentCard(
                         style = Typography.bodyMedium
                     )
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CommentTextField(
+    modifier: Modifier = Modifier,
+    isFocused: () -> Boolean,
+    changeFocus: (Boolean) -> Unit,
+    commentContent: String,
+    onCommentChange: (String) -> Unit,
+    onPostCommentBtnClicked: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .height(IntrinsicSize.Min),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { changeFocus(it.hasFocus) },
+            value = commentContent,
+            onValueChange = {
+                onCommentChange(it)
+            },
+            placeholder = {
+                Text(
+                    text = stringResource(id = R.string.post_comment),
+                    style = Typography.titleSmall
+                )
+            },
+            shape = RoundedCornerShape(20.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = MaterialTheme.colorScheme.onBackground,
+                containerColor = MaterialTheme.colorScheme.background,
+            ),
+            textStyle = Typography.titleSmall
+        )
+
+        if (isFocused()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(start = 10.dp),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.image),
+                    contentDescription = stringResource(id = R.string.add_image),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+
+                PostWaffleButton(
+                    onAction = onPostCommentBtnClicked,
+                    enableAction = commentContent.isNotBlank(),
+                    text = "답글"
+                )
             }
         }
     }

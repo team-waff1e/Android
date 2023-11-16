@@ -1,0 +1,144 @@
+package com.waff1e.waffle.waffle.ui.editwaffle
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.waff1e.waffle.R
+import com.waff1e.waffle.ui.WaffleTopAppBar
+import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.TopAppbarType
+import com.waff1e.waffle.waffle.ui.postwaffle.PostWaffleBody
+import com.waff1e.waffle.waffle.ui.postwaffle.PostWaffleViewModel
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditWaffleScreen(
+    modifier: Modifier = Modifier,
+    viewModel: EditWaffleViewModel = hiltViewModel(),
+    canNavigationBack: Boolean = true,
+    navigateBack: () -> Unit,
+    navigateToWaffles: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val enableAction = remember { derivedStateOf { viewModel.content.isNotBlank() && viewModel.content != viewModel.waffleUiState.waffle!!.content } }
+
+    Scaffold(
+        modifier = modifier
+            .background(Color.Transparent),
+        topBar = {
+            WaffleTopAppBar(
+                hasNavigationIcon = canNavigationBack,
+                navigationIconClicked = navigateBack,
+                title = "",
+                navigationIcon = Icons.Filled.Close,
+                type = TopAppbarType.PostWaffle,
+                enableAction = enableAction.value,
+                onAction = {
+                    coroutineScope.launch {
+                        val responseResult = viewModel.updateWaffle()
+
+                        if (responseResult.isSuccess) {
+                            // TODO. 게시글 수정 성공 처리
+                            navigateToWaffles()
+                        } else {
+                            // TODO. 게시글 수정 실패 처리
+
+                        }
+                    }
+                },
+                actionBtnText = stringResource(id = R.string.do_edit)
+            )
+        },
+    ) { innerPadding ->
+        EditWaffleBody(
+            modifier = modifier
+                .padding(innerPadding),
+            content = { viewModel.content },
+            setContent = viewModel::setContent
+        )
+    }
+}
+
+
+@Composable
+fun EditWaffleBody(
+    modifier: Modifier = Modifier,
+    content: () -> String,
+    setContent: (String) -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+    ) {
+        Image(
+            modifier = Modifier
+                .padding(top = 10.dp)
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.onBackground),
+            imageVector = ImageVector.vectorResource(id = R.drawable.person),
+            contentDescription = stringResource(id = R.string.profile_img),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
+        )
+
+        EditWaffleTextField(
+            content = content,
+            setContent = setContent
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditWaffleTextField(
+    modifier: Modifier = Modifier,
+    content: () -> String,
+    setContent: (String) -> Unit,
+) {
+    TextField(
+        value = content(),
+        onValueChange = { setContent(it) },
+        placeholder = {
+            Text(
+                text = stringResource(id = R.string.post_waffle_placeholder),
+                style = Typography.displayMedium,
+                color = Color.Gray
+            )
+        },
+        colors = TextFieldDefaults.textFieldColors(
+            containerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent
+        ),
+        textStyle = Typography.displayMedium
+    )
+}

@@ -13,6 +13,8 @@ import javax.inject.Inject
 interface AuthRepository {
      suspend fun login(loginRequest: LoginRequest): Response<DefaultResponse>
 
+     suspend fun logout(): Response<DefaultResponse>
+
      suspend fun signup(signupRequest: SignupRequest): Response<DefaultResponse>
 
      suspend fun checkEmail(email: CheckEmailRequest): Response<DefaultResponse>
@@ -25,6 +27,10 @@ class DefaultAuthRepository @Inject constructor(
 ) : AuthRepository {
      override suspend fun login(loginRequest: LoginRequest): Response<DefaultResponse> {
           return authService.requestLogin(loginRequest)
+     }
+
+     override suspend fun logout(): Response<DefaultResponse> {
+          return authService.requestLogout()
      }
 
 

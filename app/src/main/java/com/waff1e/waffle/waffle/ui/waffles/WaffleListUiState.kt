@@ -7,6 +7,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.waff1e.waffle.waffle.dto.Waffle
 
 data class WaffleListUiState(
-    val waffleList: MutableList<Waffle> = mutableListOf(),
+    val waffleList: List<Waffle> = listOf(),
     val errorCode: Int? = null
 )

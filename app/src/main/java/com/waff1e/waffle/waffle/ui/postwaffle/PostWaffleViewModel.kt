@@ -25,9 +25,7 @@ class PostWaffleViewModel @Inject constructor(
     }
 
     suspend fun postWaffle(): ResponseResult {
-        // TODO. memberId 변경 필요
         val postWaffleRequest = PostWaffleRequest(
-            memberId = 1234,
             content = content
         )
 

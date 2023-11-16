@@ -1,6 +1,7 @@
 package com.waff1e.waffle.member.network
 
 import com.waff1e.waffle.dto.DefaultResponse
+import com.waff1e.waffle.member.dto.FollowRequest
 import com.waff1e.waffle.member.dto.Member
 import com.waff1e.waffle.member.dto.NicknameRequest
 import com.waff1e.waffle.member.dto.PasswordRequest
@@ -17,13 +18,14 @@ import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface MemberService {
     @GET("members")
     suspend fun getMyProfile(): Response<Member>
 
     @GET("members/{memberId}")
-    suspend fun getProfileById(id: Long): Response<Member>
+    suspend fun getProfileById(@Path("memberId") id: Long): Response<Member>
 
     @HTTP(method = "DELETE", path = "members", hasBody = true)
     suspend fun deleteMyProfile(@Body pwd: PasswordRequest): Response<DefaultResponse>
@@ -41,4 +43,14 @@ interface MemberService {
 
     @PATCH("members/nickname")
     suspend fun updateNickname(@Body nicknameRequest: NicknameRequest): Response<DefaultResponse>
+
+    @POST("members/follow")
+    suspend fun follow(@Body memberId: FollowRequest): Response<DefaultResponse>
+
+    @POST("members/unfollow")
+    suspend fun unfollow(@Body memberId: FollowRequest): Response<DefaultResponse>
+
+    // TODO. 팔로우 리스트 조회
+//    @GET("members/follow")
+//    suspend fun getFollowList(@Body memberId: FollowRequest): Response<DefaultResponse>
 }

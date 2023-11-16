@@ -13,6 +13,9 @@ interface AuthService {
     @POST("auth/login")
     suspend fun requestLogin(@Body loginRequest: LoginRequest): Response<DefaultResponse>
 
+    @POST("auth/logout")
+    suspend fun requestLogout(): Response<DefaultResponse>
+
     @POST("auth/signup")
     suspend fun requestSignup(@Body signupRequest: SignupRequest): Response<DefaultResponse>
 
