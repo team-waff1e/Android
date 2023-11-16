@@ -27,8 +27,10 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -73,6 +75,66 @@ fun WaffleApp(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WaffleTopAppBar(
+    modifier: Modifier = Modifier,
+    title: String = stringResource(id = R.string.app_name),
+    hasNavigationIcon: Boolean,
+    navigationIconClicked: () -> Unit = { },
+    navigationIcon: ImageVector = Icons.Filled.ArrowBack,
+    actionIcon: ImageVector = Icons.Filled.Settings,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    type: TopAppbarType = TopAppbarType.Default,
+    onAction: () -> Unit = { },
+    enableAction: Boolean = false,
+    actionBtnText: String = stringResource(id = R.string.post_waffle)
+) {
+    CenterAlignedTopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = Typography.titleMedium
+            )
+        },
+        modifier = modifier,
+        navigationIcon = {
+            if (hasNavigationIcon) {
+                IconButton(onClick = navigationIconClicked) {
+                    Icon(
+                        imageVector = navigationIcon,
+                        contentDescription = stringResource(R.string.navigation_icon),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        },
+        actions = {
+            when (type) {
+                TopAppbarType.PostWaffle -> {
+                    PostWaffleButton(
+                        onAction = onAction,
+                        enableAction = enableAction,
+                        text = actionBtnText
+                    )
+                }
+                TopAppbarType.Profile -> {
+                    IconButton(onClick = onAction) {
+                        Icon(
+                            imageVector = actionIcon,
+                            contentDescription = stringResource(R.string.action_icon),
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+                TopAppbarType.Default -> Unit
+            }
+        },
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(scrolledContainerColor = MaterialTheme.colorScheme.background)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileTopAppBar(
     modifier: Modifier = Modifier,
     title: String = stringResource(id = R.string.app_name),
     hasNavigationIcon: Boolean,

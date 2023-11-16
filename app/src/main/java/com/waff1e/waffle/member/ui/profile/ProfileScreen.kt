@@ -1,5 +1,6 @@
 package com.waff1e.waffle.member.ui.profile
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -30,10 +31,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,8 +48,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -62,6 +69,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -71,12 +79,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.ui.PostWaffleButton
+import com.waff1e.waffle.ui.ProfileTopAppBar
 import com.waff1e.waffle.ui.WaffleEditDeleteMenu
 import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TabItem
 import com.waff1e.waffle.utils.TopAppbarType
+import com.waff1e.waffle.utils.optionalNestedScroll
 import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
@@ -86,7 +96,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
@@ -117,6 +127,24 @@ fun ProfileScreen(
         }
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val canRefresh by remember {
+        derivedStateOf {
+            scrollBehavior.state.collapsedFraction == 0f
+        }
+    }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                viewModel.getWaffleListByMemberId(true)
+                isRefreshing = false
+            }
+        }
+    )
+
     var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
     var showReportPopUpMenu by remember { mutableStateOf(false) }
     var clickedWaffleId by remember { mutableLongStateOf(0L) }
@@ -137,13 +165,14 @@ fun ProfileScreen(
             modifier = modifier
                 .background(Color.Transparent),
             topBar = {
-                WaffleTopAppBar(
+                ProfileTopAppBar(
                     hasNavigationIcon = canNavigationBack,
                     navigationIconClicked = navigateBack,
                     title = "",
                     type = TopAppbarType.Profile,
                     onAction = { navigateToEditProfile() },
-                    actionIcon = Icons.Filled.Settings
+                    actionIcon = Icons.Filled.Settings,
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButtonPosition = FabPosition.End,
@@ -182,6 +211,9 @@ fun ProfileScreen(
                     showReportPopUpMenu = true
                 },
                 isMyProfile = viewModel.isMyProfile,
+                canRefresh = canRefresh,
+                isRefreshing = isRefreshing,
+                pullRefreshState = pullRefreshState
             )
         }
 
@@ -224,6 +256,7 @@ fun ProfileScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ProfileBody(
     modifier: Modifier = Modifier,
@@ -237,6 +270,9 @@ fun ProfileBody(
     changeShowEditDeletePopUpMenu: () -> Unit,
     changeShowReportPopUpMenu: () -> Unit,
     isMyProfile: Boolean,
+    canRefresh: Boolean,
+    isRefreshing: Boolean,
+    pullRefreshState: PullRefreshState
 ) {
     // TODO. 팔로우 처리 필요
     var follow by remember {
@@ -246,7 +282,7 @@ fun ProfileBody(
     Column(
         modifier = modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -301,7 +337,10 @@ fun ProfileBody(
             onLikeBtnClicked = onLikeBtnClicked,
             changeClickedWaffleId = changeClickedWaffleId,
             changeShowEditDeletePopUpMenu = changeShowEditDeletePopUpMenu,
-            changeShowReportPopUpMenu = changeShowReportPopUpMenu
+            changeShowReportPopUpMenu = changeShowReportPopUpMenu,
+            canRefresh = canRefresh,
+            isRefreshing = isRefreshing,
+            pullRefreshState = pullRefreshState
         )
     }
 }
@@ -318,24 +357,15 @@ fun ProfileTab(
     changeClickedWaffleId: (Long) -> Unit,
     changeShowEditDeletePopUpMenu: () -> Unit,
     changeShowReportPopUpMenu: () -> Unit,
+    canRefresh: Boolean,
+    isRefreshing: Boolean,
+    pullRefreshState: PullRefreshState
 ) {
     val coroutineScope = rememberCoroutineScope()
     val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Like)
     var selectedTabIdx by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState { tabItems.size }
     val context = LocalContext.current
-
-    var isRefreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = {
-            coroutineScope.launch {
-                isRefreshing = true
-//                viewModel.getWaffleList(true)
-                isRefreshing = false
-            }
-        }
-    )
 
     Column(
         modifier = modifier
@@ -404,7 +434,7 @@ fun ProfileTab(
                             // TODO. 페이지에서 프로필 이미지 클릭 시 처리 필요
                             Toast.makeText(context, "같은 페이지 이동 불가!", Toast.LENGTH_SHORT).show()
                         },
-                        canRefresh = true,
+                        canRefresh = canRefresh,
                         isRefreshing = isRefreshing,
                         pullRefreshState = pullRefreshState
                     )
