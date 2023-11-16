@@ -1,34 +1,54 @@
 package com.waff1e.waffle.utils
 
-import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.semantics.Role
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
 
-interface MultipleClickDefender {
+interface MultipleEventsCutterManager {
     fun processEvent(event: () -> Unit)
-
-    companion object
 }
 
-fun MultipleClickDefender.Companion.get(): MultipleClickDefender = MultipleClickDefenderDefault()
-
-class MultipleClickDefenderDefault: MultipleClickDefender {
-    private val now: Long
-        get() = System.currentTimeMillis()
-
-    private var lastEventTimeMs = 0L
-
-    override fun processEvent(event: () -> Unit) {
-        if (now - lastEventTimeMs >= 500L) event.invoke()
-
-        lastEventTimeMs = now
+@OptIn(FlowPreview::class)
+@Composable
+fun <T>multipleEventsCutter(
+    content: @Composable (MultipleEventsCutterManager) -> T
+) : T {
+    val debounceState = remember {
+        MutableSharedFlow<() -> Unit>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
     }
+
+    val result = content(
+        object : MultipleEventsCutterManager {
+            override fun processEvent(event: () -> Unit) {
+                debounceState.tryEmit(event)
+            }
+        }
+    )
+
+    LaunchedEffect(true) {
+        debounceState
+            .debounce(300L)
+            .collect { onClick ->
+                onClick.invoke()
+            }
+    }
+
+    return result
 }
 
 fun Modifier.clickableSingle(
@@ -36,7 +56,7 @@ fun Modifier.clickableSingle(
     onClickLabel: String? = null,
     role: Role? = null,
     disableRipple: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) = composed(
     inspectorInfo = debugInspectorInfo {
         name = "clickable"
@@ -46,13 +66,14 @@ fun Modifier.clickableSingle(
         properties["onClick"] = onClick
     }
 ) {
-    val multipleClickDefender = remember { MultipleClickDefender.get() }
-    Modifier.clickable(
-        enabled = enabled,
-        onClickLabel = onClickLabel,
-        onClick = { multipleClickDefender.processEvent { onClick() } },
-        role = role,
-        indication = if (disableRipple) null else LocalIndication.current,
-        interactionSource = remember { MutableInteractionSource() }
-    )
+    multipleEventsCutter { manager ->
+        Modifier.clickable(
+            enabled = enabled,
+            onClickLabel = onClickLabel,
+            onClick = { manager.processEvent { onClick() } },
+            role = role,
+            indication = if (disableRipple) null else LocalIndication.current,
+            interactionSource = remember { MutableInteractionSource() }
+        )
+    }
 }

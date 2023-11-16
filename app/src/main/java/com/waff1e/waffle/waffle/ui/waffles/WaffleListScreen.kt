@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
@@ -50,6 +51,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -89,6 +91,7 @@ import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.clickableSingle
 import com.waff1e.waffle.utils.isEnd
 import com.waff1e.waffle.utils.loadingEffect
+import com.waff1e.waffle.utils.optionalNestedScroll
 import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.dto.Waffle
 import kotlinx.coroutines.delay
@@ -99,7 +102,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun WaffleListScreen(
     modifier: Modifier = Modifier,
@@ -112,7 +115,7 @@ fun WaffleListScreen(
     navigateToProfile: (String?) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -136,10 +139,23 @@ fun WaffleListScreen(
                 }
                 if (available.y > 1)
                     isFABScrollUp = true
+
                 return Offset.Zero
             }
         }
     }
+
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                viewModel.getWaffleList(true)
+                isRefreshing = false
+            }
+        }
+    )
 
     var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
     var showReportPopUpMenu by remember { mutableStateOf(false) }
@@ -195,7 +211,7 @@ fun WaffleListScreen(
             Scaffold(
                 modifier = modifier
                     .background(Color.Transparent)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    .optionalNestedScroll(scrollBehavior, pullRefreshState),
                 topBar = {
                     WaffleTopAppBar(
                         hasNavigationIcon = true,
@@ -243,7 +259,10 @@ fun WaffleListScreen(
                     },
                     onProfileImageClicked = { memberId ->
                         navigateToProfile(memberId)
-                    }
+                    },
+                    canRefresh = scrollBehavior.state.collapsedFraction == 0f,
+                    isRefreshing = isRefreshing,
+                    pullRefreshState = pullRefreshState
                 )
             }
         }
@@ -297,20 +316,11 @@ fun WafflesBody(
     nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
-    onProfileImageClicked: (String?) -> Unit
+    onProfileImageClicked: (String?) -> Unit,
+    canRefresh: Boolean,
+    isRefreshing: Boolean,
+    pullRefreshState: PullRefreshState
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    var isRefreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = {
-            coroutineScope.launch {
-                isRefreshing = true
-                getWaffleList(true)
-                isRefreshing = false
-            }
-        }
-    )
 
     Box(
         modifier = Modifier
@@ -322,18 +332,20 @@ fun WafflesBody(
             modifier = modifier,
             onWaffleClick = onWaffleClick,
             list = list,
-            nestedScrollConnection = nestedScrollConnection,
+            nestedScrollConnection = { nestedScrollConnection} ,
             getWaffleList = getWaffleList,
             onLikeBtnClicked = onLikeBtnClicked,
             onShowPopUpMenuClicked = onShowPopUpMenuClicked,
             onProfileImageClicked = onProfileImageClicked
         )
 
-        PullRefreshIndicator(
-            modifier = modifier,
-            refreshing = isRefreshing,
-            state = pullRefreshState
-        )
+        if (canRefresh) {
+            PullRefreshIndicator(
+                modifier = modifier,
+                refreshing = isRefreshing,
+                state = pullRefreshState
+            )
+        }
     }
 }
 
@@ -342,7 +354,7 @@ fun WaffleListLazyColumn(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
     list: List<Waffle>,
-    nestedScrollConnection: NestedScrollConnection,
+    nestedScrollConnection: () -> NestedScrollConnection,
     getWaffleList: suspend (Boolean) -> Unit,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
@@ -374,7 +386,7 @@ fun WaffleListLazyColumn(
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .nestedScroll(nestedScrollConnection),
+                .nestedScroll(nestedScrollConnection()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             state = lazyListState,
         ) {
@@ -513,7 +525,8 @@ fun WaffleListCard(
                                         LoginUser.nickname == item.owner.nickname,
                                         item.id
                                     )
-                                },
+                                }
+                            ,
                             imageVector = ImageVector.vectorResource(id = R.drawable.more_vert),
                             contentDescription = stringResource(id = R.string.waffle_option),
                             tint = MaterialTheme.colorScheme.onBackground
