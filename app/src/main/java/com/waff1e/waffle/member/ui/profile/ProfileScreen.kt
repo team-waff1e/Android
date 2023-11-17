@@ -15,6 +15,7 @@ import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,10 +23,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -60,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
@@ -176,7 +181,8 @@ fun ProfileScreen(
                 isMyProfile = viewModel.isMyProfile,
                 canRefresh = canRefresh,
                 isRefreshing = isRefreshing,
-                pullRefreshState = pullRefreshState
+                pullRefreshState = pullRefreshState,
+                topPadding = innerPadding.calculateTopPadding()
             )
         }
 
@@ -234,75 +240,85 @@ fun ProfileBody(
     isMyProfile: Boolean,
     canRefresh: Boolean,
     isRefreshing: Boolean,
-    pullRefreshState: PullRefreshState
+    pullRefreshState: PullRefreshState,
+    topPadding: Dp
 ) {
     // TODO. 팔로우 처리 필요
     var follow by remember {
         mutableStateOf(false)
     }
 
-    Column(
-        modifier = modifier
-            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Image(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(MaterialTheme.colorScheme.onBackground),
-                imageVector = ImageVector.vectorResource(id = R.drawable.person),
-                contentDescription = stringResource(id = R.string.profile_img),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
-            )
-            Spacer(
-                modifier = Modifier
-                    .weight(1f)
-            )
+    BoxWithConstraints {
+        val scrollState = rememberScrollState()
+        val screenHeight = maxHeight - topPadding
 
-            if (!isMyProfile) {
-                AnimatedContent(targetState = follow, label = "") { targetState ->
-                    FollowButton(
-                        onAction = {
-                            // TODO. 팔로우 버튼 클릭 처리 필요
-                            follow = !follow
-                        },
-                        isFollow = targetState
-                    )
-                }
-            }
-        }
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = modifier
+                .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(
-                text = profile().member?.nickname ?: "",
-                style = Typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Image(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(MaterialTheme.colorScheme.onBackground),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.person),
+                    contentDescription = stringResource(id = R.string.profile_img),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
+                )
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                )
 
-            Text(
-                text = "게시물 ${waffleListUiState().waffleList.size}개",
-                style = Typography.bodyMedium
+                if (!isMyProfile) {
+                    AnimatedContent(targetState = follow, label = "") { targetState ->
+                        FollowButton(
+                            onAction = {
+                                // TODO. 팔로우 버튼 클릭 처리 필요
+                                follow = !follow
+                            },
+                            isFollow = targetState
+                        )
+                    }
+                }
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = profile().member?.nickname ?: "",
+                    style = Typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "게시물 ${waffleListUiState().waffleList.size}개",
+                    style = Typography.bodyMedium
+                )
+            }
+
+            ProfileTab(
+                modifier = Modifier.height(screenHeight),
+                myWaffleListUiState = waffleListUiState,
+                getMyWaffleList = getWaffleList,
+                onWaffleClick = onWaffleClick,
+                onLikeBtnClicked = onLikeBtnClicked,
+                changeClickedWaffleId = changeClickedWaffleId,
+                changeShowEditDeletePopUpMenu = changeShowEditDeletePopUpMenu,
+                changeShowReportPopUpMenu = changeShowReportPopUpMenu,
+                canRefresh = canRefresh,
+                isRefreshing = isRefreshing,
+                pullRefreshState = pullRefreshState
             )
         }
-
-        ProfileTab(
-            myWaffleListUiState = waffleListUiState,
-            getMyWaffleList = getWaffleList,
-            onWaffleClick = onWaffleClick,
-            onLikeBtnClicked = onLikeBtnClicked,
-            changeClickedWaffleId = changeClickedWaffleId,
-            changeShowEditDeletePopUpMenu = changeShowEditDeletePopUpMenu,
-            changeShowReportPopUpMenu = changeShowReportPopUpMenu,
-            canRefresh = canRefresh,
-            isRefreshing = isRefreshing,
-            pullRefreshState = pullRefreshState
-        )
     }
 }
 
@@ -329,10 +345,9 @@ fun ProfileTab(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
     ) {
         TabRow(
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             selectedTabIndex = selectedTabIdx
         ) {
             tabItems.forEachIndexed { idx, type ->
@@ -368,7 +383,7 @@ fun ProfileTab(
         }
 
         HorizontalPager(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth(),
             state = pagerState,
             userScrollEnabled = false
