@@ -137,14 +137,19 @@ fun WaffleListScreen(
                         isFABExpandedScrollUp = false
                     }
                 }
-                if (available.y > 1)
-                    isFABScrollUp = true
+
+                if (available.y > 1) isFABScrollUp = true
 
                 return Offset.Zero
             }
         }
     }
 
+    val canRefresh by remember {
+        derivedStateOf {
+            scrollBehavior.state.collapsedFraction == 0f
+        }
+    }
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -260,7 +265,7 @@ fun WaffleListScreen(
                     onProfileImageClicked = { memberId ->
                         navigateToProfile(memberId)
                     },
-                    canRefresh = scrollBehavior.state.collapsedFraction == 0f,
+                    canRefresh = canRefresh,
                     isRefreshing = isRefreshing,
                     pullRefreshState = pullRefreshState
                 )
@@ -313,7 +318,8 @@ fun WafflesBody(
     onWaffleClick: (Waffle) -> Unit,
     list: List<Waffle>,
     getWaffleList: suspend (Boolean) -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
+    canNestedScroll: Boolean = true,
+    nestedScrollConnection: NestedScrollConnection?,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
     onProfileImageClicked: (String?) -> Unit,
@@ -321,7 +327,6 @@ fun WafflesBody(
     isRefreshing: Boolean,
     pullRefreshState: PullRefreshState
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -332,7 +337,8 @@ fun WafflesBody(
             modifier = modifier,
             onWaffleClick = onWaffleClick,
             list = list,
-            nestedScrollConnection = { nestedScrollConnection} ,
+            canNestedScroll = canNestedScroll,
+            nestedScrollConnection = nestedScrollConnection,
             getWaffleList = getWaffleList,
             onLikeBtnClicked = onLikeBtnClicked,
             onShowPopUpMenuClicked = onShowPopUpMenuClicked,
@@ -354,7 +360,8 @@ fun WaffleListLazyColumn(
     modifier: Modifier = Modifier,
     onWaffleClick: (Waffle) -> Unit,
     list: List<Waffle>,
-    nestedScrollConnection: () -> NestedScrollConnection,
+    canNestedScroll: Boolean,
+    nestedScrollConnection: NestedScrollConnection?,
     getWaffleList: suspend (Boolean) -> Unit,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
@@ -386,7 +393,7 @@ fun WaffleListLazyColumn(
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .nestedScroll(nestedScrollConnection()),
+                .optionalNestedScroll(canNestedScroll, nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             state = lazyListState,
         ) {

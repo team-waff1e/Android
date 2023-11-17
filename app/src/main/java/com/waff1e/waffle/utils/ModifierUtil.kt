@@ -20,6 +20,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
@@ -62,6 +63,14 @@ fun Modifier.loadingEffect(): Modifier = composed {
 fun Modifier.optionalNestedScroll(scrollBehavior: TopAppBarScrollBehavior, pullRefreshState: PullRefreshState) = then(
     if (pullRefreshState.progress == 0f) {
         Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+    } else {
+        Modifier
+    }
+)
+
+fun Modifier.optionalNestedScroll(canNestedScroll: Boolean, nestedScrollConnection: NestedScrollConnection?) = then(
+    if (canNestedScroll) {
+        Modifier.nestedScroll(nestedScrollConnection!!)
     } else {
         Modifier
     }

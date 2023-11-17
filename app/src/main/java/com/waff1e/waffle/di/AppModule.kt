@@ -44,7 +44,7 @@ const val DEBOUNCE_TIME = 350L
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    private const val BASE_URL = "https://1cfc097e-e2fe-4c7b-b410-e09c28a91c4d.mock.pstmn.io"
+    private const val BASE_URL = "https://c5856fa5-2db2-41f0-bd6e-8fd755c82ca7.mock.pstmn.io"
 
     @Singleton
     @Provides

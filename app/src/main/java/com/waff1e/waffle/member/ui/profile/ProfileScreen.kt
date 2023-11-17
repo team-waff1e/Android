@@ -16,24 +16,20 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,8 +40,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -55,13 +53,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -70,13 +66,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
-import com.waff1e.waffle.ui.PostWaffleButton
+import com.waff1e.waffle.ui.ProfileTopAppBar
 import com.waff1e.waffle.ui.WaffleEditDeleteMenu
 import com.waff1e.waffle.ui.WaffleReportMenu
-import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TabItem
-import com.waff1e.waffle.utils.TopAppbarType
 import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
@@ -86,7 +80,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
@@ -99,23 +93,25 @@ fun ProfileScreen(
     navigateToEditProfile: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var isFABVisible by remember { mutableStateOf(true) }
     var isFABExpanded by remember { mutableStateOf(false) }
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < -1) {
-                    coroutineScope.launch {
-                        isFABVisible = false
-                        isFABExpanded = false
-                    }
-                }
-                if (available.y > 1)
-                    isFABVisible = true
-                return Offset.Zero
-            }
+
+    val canRefresh by remember {
+        derivedStateOf {
+            // TODO. 최상단일 때만 새로고침 가능하도록 변경
+            true
         }
     }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                viewModel.getWaffleListByMemberId(true)
+                isRefreshing = false
+            }
+        }
+    )
 
     var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
     var showReportPopUpMenu by remember { mutableStateOf(false) }
@@ -134,22 +130,21 @@ fun ProfileScreen(
             .fillMaxSize()
     ) {
         Scaffold(
-            modifier = modifier
-                .background(Color.Transparent),
+            modifier = modifier,
             topBar = {
-                WaffleTopAppBar(
+                ProfileTopAppBar(
                     hasNavigationIcon = canNavigationBack,
                     navigationIconClicked = navigateBack,
-                    title = "",
-                    type = TopAppbarType.Profile,
                     onAction = { navigateToEditProfile() },
-                    actionIcon = Icons.Filled.Settings
+                    actionIcon = Icons.Filled.Settings,
+                    profile = { viewModel.profile },
+                    myWaffleListUiState = { viewModel.waffleListUiState },
                 )
             },
             floatingActionButtonPosition = FabPosition.End,
             floatingActionButton = {
                 WaffleListFAB(
-                    isFABVisible = { isFABVisible },
+                    isFABVisible = { true },
                     isFABExpanded = { isFABExpanded },
                     changeFabExpandedState = { isFABExpanded = true },
                     navigateToPostWaffle = navigateToPostWaffle
@@ -160,11 +155,10 @@ fun ProfileScreen(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                myProfile = { viewModel.profile },
-                getMyWaffleList = viewModel::getWaffleListByMemberId,
-                myWaffleListUiState = { viewModel.waffleListUiState },
+                profile = { viewModel.profile },
+                getWaffleList = viewModel::getWaffleListByMemberId,
+                waffleListUiState = { viewModel.waffleListUiState },
                 onWaffleClick = navigateToWaffle,
-                nestedScrollConnection = nestedScrollConnection,
                 onLikeBtnClicked = { id ->
                     viewModel.waffleListUiState.waffleList.updateLikes(id)
 
@@ -182,6 +176,9 @@ fun ProfileScreen(
                     showReportPopUpMenu = true
                 },
                 isMyProfile = viewModel.isMyProfile,
+                canRefresh = canRefresh,
+                isRefreshing = isRefreshing,
+                pullRefreshState = pullRefreshState
             )
         }
 
@@ -224,19 +221,22 @@ fun ProfileScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ProfileBody(
     modifier: Modifier = Modifier,
-    myProfile: () -> ProfileUiState,
-    myWaffleListUiState: () -> WaffleListUiState,
-    getMyWaffleList: suspend (Boolean) -> Unit,
+    profile: () -> ProfileUiState,
+    waffleListUiState: () -> WaffleListUiState,
+    getWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit,
     changeClickedWaffleId: (Long) -> Unit,
     changeShowEditDeletePopUpMenu: () -> Unit,
     changeShowReportPopUpMenu: () -> Unit,
     isMyProfile: Boolean,
+    canRefresh: Boolean,
+    isRefreshing: Boolean,
+    pullRefreshState: PullRefreshState
 ) {
     // TODO. 팔로우 처리 필요
     var follow by remember {
@@ -246,7 +246,7 @@ fun ProfileBody(
     Column(
         modifier = modifier
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -282,26 +282,28 @@ fun ProfileBody(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = myProfile().member?.nickname ?: "",
+                text = profile().member?.nickname ?: "",
                 style = Typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "게시물 ${myWaffleListUiState().waffleList.size}개",
+                text = "게시물 ${waffleListUiState().waffleList.size}개",
                 style = Typography.bodyMedium
             )
         }
 
         ProfileTab(
-            myWaffleListUiState = myWaffleListUiState,
-            getMyWaffleList = getMyWaffleList,
+            myWaffleListUiState = waffleListUiState,
+            getMyWaffleList = getWaffleList,
             onWaffleClick = onWaffleClick,
-            nestedScrollConnection = nestedScrollConnection,
             onLikeBtnClicked = onLikeBtnClicked,
             changeClickedWaffleId = changeClickedWaffleId,
             changeShowEditDeletePopUpMenu = changeShowEditDeletePopUpMenu,
-            changeShowReportPopUpMenu = changeShowReportPopUpMenu
+            changeShowReportPopUpMenu = changeShowReportPopUpMenu,
+            canRefresh = canRefresh,
+            isRefreshing = isRefreshing,
+            pullRefreshState = pullRefreshState
         )
     }
 }
@@ -313,29 +315,19 @@ fun ProfileTab(
     myWaffleListUiState: () -> WaffleListUiState,
     getMyWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit,
     changeClickedWaffleId: (Long) -> Unit,
     changeShowEditDeletePopUpMenu: () -> Unit,
     changeShowReportPopUpMenu: () -> Unit,
+    canRefresh: Boolean,
+    isRefreshing: Boolean,
+    pullRefreshState: PullRefreshState
 ) {
     val coroutineScope = rememberCoroutineScope()
     val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Like)
     var selectedTabIdx by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState { tabItems.size }
     val context = LocalContext.current
-
-    var isRefreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = {
-            coroutineScope.launch {
-                isRefreshing = true
-//                viewModel.getWaffleList(true)
-                isRefreshing = false
-            }
-        }
-    )
 
     Column(
         modifier = modifier
@@ -389,7 +381,8 @@ fun ProfileTab(
                         onWaffleClick = { onWaffleClick(it.id) },
                         list = myWaffleListUiState().waffleList,
                         getWaffleList = getMyWaffleList,
-                        nestedScrollConnection = nestedScrollConnection,
+                        canNestedScroll = false,
+                        nestedScrollConnection = null,
                         onLikeBtnClicked = {
                             coroutineScope.launch {
                                 onLikeBtnClicked(it)
@@ -404,7 +397,7 @@ fun ProfileTab(
                             // TODO. 페이지에서 프로필 이미지 클릭 시 처리 필요
                             Toast.makeText(context, "같은 페이지 이동 불가!", Toast.LENGTH_SHORT).show()
                         },
-                        canRefresh = true,
+                        canRefresh = canRefresh,
                         isRefreshing = isRefreshing,
                         pullRefreshState = pullRefreshState
                     )
