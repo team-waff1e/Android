@@ -1,6 +1,5 @@
 package com.waff1e.waffle.member.ui.profile
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -17,23 +16,16 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -49,7 +41,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -62,14 +53,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -78,15 +64,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
-import com.waff1e.waffle.ui.PostWaffleButton
 import com.waff1e.waffle.ui.ProfileTopAppBar
 import com.waff1e.waffle.ui.WaffleEditDeleteMenu
 import com.waff1e.waffle.ui.WaffleReportMenu
-import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
 import com.waff1e.waffle.utils.TabItem
-import com.waff1e.waffle.utils.TopAppbarType
-import com.waff1e.waffle.utils.optionalNestedScroll
 import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
@@ -109,28 +91,12 @@ fun ProfileScreen(
     navigateToEditProfile: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var isFABVisible by remember { mutableStateOf(true) }
     var isFABExpanded by remember { mutableStateOf(false) }
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < -1) {
-                    coroutineScope.launch {
-                        isFABVisible = false
-                        isFABExpanded = false
-                    }
-                }
-                if (available.y > 1)
-                    isFABVisible = true
-                return Offset.Zero
-            }
-        }
-    }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val canRefresh by remember {
         derivedStateOf {
-            scrollBehavior.state.collapsedFraction == 0f
+            // TODO. 최상단일 때만 새로고침 가능하도록 변경
+            true
         }
     }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -162,23 +128,21 @@ fun ProfileScreen(
             .fillMaxSize()
     ) {
         Scaffold(
-            modifier = modifier
-                .background(Color.Transparent),
+            modifier = modifier,
             topBar = {
                 ProfileTopAppBar(
                     hasNavigationIcon = canNavigationBack,
                     navigationIconClicked = navigateBack,
-                    title = "",
-                    type = TopAppbarType.Profile,
                     onAction = { navigateToEditProfile() },
                     actionIcon = Icons.Filled.Settings,
-                    scrollBehavior = scrollBehavior
+                    profile = { viewModel.profile },
+                    myWaffleListUiState = { viewModel.waffleListUiState }
                 )
             },
             floatingActionButtonPosition = FabPosition.End,
             floatingActionButton = {
                 WaffleListFAB(
-                    isFABVisible = { isFABVisible },
+                    isFABVisible = { true },
                     isFABExpanded = { isFABExpanded },
                     changeFabExpandedState = { isFABExpanded = true },
                     navigateToPostWaffle = navigateToPostWaffle
@@ -189,11 +153,10 @@ fun ProfileScreen(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                myProfile = { viewModel.profile },
-                getMyWaffleList = viewModel::getWaffleListByMemberId,
-                myWaffleListUiState = { viewModel.waffleListUiState },
+                profile = { viewModel.profile },
+                getWaffleList = viewModel::getWaffleListByMemberId,
+                waffleListUiState = { viewModel.waffleListUiState },
                 onWaffleClick = navigateToWaffle,
-                nestedScrollConnection = nestedScrollConnection,
                 onLikeBtnClicked = { id ->
                     viewModel.waffleListUiState.waffleList.updateLikes(id)
 
@@ -260,11 +223,10 @@ fun ProfileScreen(
 @Composable
 fun ProfileBody(
     modifier: Modifier = Modifier,
-    myProfile: () -> ProfileUiState,
-    myWaffleListUiState: () -> WaffleListUiState,
-    getMyWaffleList: suspend (Boolean) -> Unit,
+    profile: () -> ProfileUiState,
+    waffleListUiState: () -> WaffleListUiState,
+    getWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit,
     changeClickedWaffleId: (Long) -> Unit,
     changeShowEditDeletePopUpMenu: () -> Unit,
@@ -318,22 +280,21 @@ fun ProfileBody(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = myProfile().member?.nickname ?: "",
+                text = profile().member?.nickname ?: "",
                 style = Typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "게시물 ${myWaffleListUiState().waffleList.size}개",
+                text = "게시물 ${waffleListUiState().waffleList.size}개",
                 style = Typography.bodyMedium
             )
         }
 
         ProfileTab(
-            myWaffleListUiState = myWaffleListUiState,
-            getMyWaffleList = getMyWaffleList,
+            myWaffleListUiState = waffleListUiState,
+            getMyWaffleList = getWaffleList,
             onWaffleClick = onWaffleClick,
-            nestedScrollConnection = nestedScrollConnection,
             onLikeBtnClicked = onLikeBtnClicked,
             changeClickedWaffleId = changeClickedWaffleId,
             changeShowEditDeletePopUpMenu = changeShowEditDeletePopUpMenu,
@@ -352,7 +313,6 @@ fun ProfileTab(
     myWaffleListUiState: () -> WaffleListUiState,
     getMyWaffleList: suspend (Boolean) -> Unit,
     onWaffleClick: (Long) -> Unit,
-    nestedScrollConnection: NestedScrollConnection,
     onLikeBtnClicked: suspend (Long) -> Unit,
     changeClickedWaffleId: (Long) -> Unit,
     changeShowEditDeletePopUpMenu: () -> Unit,
@@ -419,7 +379,8 @@ fun ProfileTab(
                         onWaffleClick = { onWaffleClick(it.id) },
                         list = myWaffleListUiState().waffleList,
                         getWaffleList = getMyWaffleList,
-                        nestedScrollConnection = nestedScrollConnection,
+                        canNestedScroll = false,
+                        nestedScrollConnection = null,
                         onLikeBtnClicked = {
                             coroutineScope.launch {
                                 onLikeBtnClicked(it)
