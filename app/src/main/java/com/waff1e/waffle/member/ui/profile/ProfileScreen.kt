@@ -1,5 +1,6 @@
 package com.waff1e.waffle.member.ui.profile
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -10,6 +11,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,6 +28,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -44,7 +48,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -57,9 +60,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -96,12 +103,13 @@ fun ProfileScreen(
     navigateToEditProfile: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
+    val scrollState = rememberScrollState()
     var isFABExpanded by remember { mutableStateOf(false) }
 
     val canRefresh by remember {
         derivedStateOf {
-            // TODO. 최상단일 때만 새로고침 가능하도록 변경
-            true
+            !scrollState.canScrollBackward
         }
     }
     var isRefreshing by remember { mutableStateOf(false) }
@@ -119,6 +127,33 @@ fun ProfileScreen(
     var showEditDeletePopUpMenu by remember { mutableStateOf(false) }
     var showReportPopUpMenu by remember { mutableStateOf(false) }
     var clickedWaffleId by remember { mutableLongStateOf(0L) }
+
+    val showTopAppbarTitle by remember {
+        derivedStateOf { !scrollState.canScrollForward }
+    }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                var blockScroll = true
+
+                if (available.y < -1) {
+                    blockScroll = scrollState.canScrollForward
+                }
+
+                if (available.y > 1) {
+                    blockScroll = scrollState.canScrollBackward && !lazyListState.canScrollBackward
+                }
+
+                return if (blockScroll) {
+                    scrollState.dispatchRawDelta(available.y * -1)
+                    Offset(0f, available.y)
+                } else {
+                    Offset.Zero
+                }
+            }
+        }
+    }
 
     BackHandler {
         if (isFABExpanded) {
@@ -141,7 +176,8 @@ fun ProfileScreen(
                     onAction = { navigateToEditProfile() },
                     actionIcon = Icons.Filled.Settings,
                     profile = { viewModel.profile },
-                    myWaffleListUiState = { viewModel.waffleListUiState }
+                    myWaffleListUiState = { viewModel.waffleListUiState },
+                    showTopAppbarTitle = showTopAppbarTitle
                 )
             },
             floatingActionButtonPosition = FabPosition.End,
@@ -182,7 +218,10 @@ fun ProfileScreen(
                 canRefresh = canRefresh,
                 isRefreshing = isRefreshing,
                 pullRefreshState = pullRefreshState,
-                topPadding = innerPadding.calculateTopPadding()
+                topPadding = innerPadding.calculateTopPadding(),
+                nestedScrollConnection = nestedScrollConnection,
+                scrollState = scrollState,
+                lazyListState = lazyListState,
             )
         }
 
@@ -241,7 +280,10 @@ fun ProfileBody(
     canRefresh: Boolean,
     isRefreshing: Boolean,
     pullRefreshState: PullRefreshState,
-    topPadding: Dp
+    topPadding: Dp,
+    nestedScrollConnection: NestedScrollConnection,
+    scrollState: ScrollState,
+    lazyListState: LazyListState,
 ) {
     // TODO. 팔로우 처리 필요
     var follow by remember {
@@ -249,60 +291,64 @@ fun ProfileBody(
     }
 
     BoxWithConstraints {
-        val scrollState = rememberScrollState()
         val screenHeight = maxHeight - topPadding
-
 
         Column(
             modifier = modifier
                 .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
                 .fillMaxSize()
+                .nestedScroll(nestedScrollConnection)
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                Image(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(MaterialTheme.colorScheme.onBackground),
-                    imageVector = ImageVector.vectorResource(id = R.drawable.person),
-                    contentDescription = stringResource(id = R.string.profile_img),
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
-                )
-                Spacer(
-                    modifier = Modifier
-                        .weight(1f)
-                )
-
-                if (!isMyProfile) {
-                    AnimatedContent(targetState = follow, label = "") { targetState ->
-                        FollowButton(
-                            onAction = {
-                                // TODO. 팔로우 버튼 클릭 처리 필요
-                                follow = !follow
-                            },
-                            isFollow = targetState
-                        )
-                    }
-                }
-            }
-
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = profile().member?.nickname ?: "",
-                    style = Typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .background(MaterialTheme.colorScheme.onBackground),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.person),
+                        contentDescription = stringResource(id = R.string.profile_img),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
+                    )
 
-                Text(
-                    text = "게시물 ${waffleListUiState().waffleList.size}개",
-                    style = Typography.bodyMedium
-                )
+                    Spacer(
+                        modifier = Modifier
+                            .weight(1f)
+                    )
+
+                    if (!isMyProfile) {
+                        AnimatedContent(targetState = follow, label = "") { targetState ->
+                            FollowButton(
+                                onAction = {
+                                    // TODO. 팔로우 버튼 클릭 처리 필요
+                                    follow = !follow
+                                },
+                                isFollow = targetState
+                            )
+                        }
+                    }
+                }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = profile().member?.nickname ?: "",
+                        style = Typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = "게시물 ${waffleListUiState().waffleList.size}개",
+                        style = Typography.bodyMedium
+                    )
+                }
             }
 
             ProfileTab(
@@ -316,7 +362,9 @@ fun ProfileBody(
                 changeShowReportPopUpMenu = changeShowReportPopUpMenu,
                 canRefresh = canRefresh,
                 isRefreshing = isRefreshing,
-                pullRefreshState = pullRefreshState
+                pullRefreshState = pullRefreshState,
+                nestedScrollConnection = nestedScrollConnection,
+                lazyListState = lazyListState,
             )
         }
     }
@@ -335,7 +383,9 @@ fun ProfileTab(
     changeShowReportPopUpMenu: () -> Unit,
     canRefresh: Boolean,
     isRefreshing: Boolean,
-    pullRefreshState: PullRefreshState
+    pullRefreshState: PullRefreshState,
+    nestedScrollConnection: NestedScrollConnection,
+    lazyListState: LazyListState,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val tabItems = listOf(TabItem.Waffle, TabItem.Comment, TabItem.Like)
@@ -394,8 +444,8 @@ fun ProfileTab(
                         onWaffleClick = { onWaffleClick(it.id) },
                         list = myWaffleListUiState().waffleList,
                         getWaffleList = getMyWaffleList,
-                        canNestedScroll = false,
-                        nestedScrollConnection = null,
+                        canNestedScroll = true,
+                        nestedScrollConnection = nestedScrollConnection,
                         onLikeBtnClicked = {
                             coroutineScope.launch {
                                 onLikeBtnClicked(it)
@@ -412,7 +462,8 @@ fun ProfileTab(
                         },
                         canRefresh = canRefresh,
                         isRefreshing = isRefreshing,
-                        pullRefreshState = pullRefreshState
+                        pullRefreshState = pullRefreshState,
+                        lazyListState = lazyListState,
                     )
                 }
 
