@@ -56,8 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -138,7 +136,7 @@ fun ProfileScreen(
                     onAction = { navigateToEditProfile() },
                     actionIcon = Icons.Filled.Settings,
                     profile = { viewModel.profile },
-                    myWaffleListUiState = { viewModel.waffleListUiState },
+                    myWaffleListUiState = { viewModel.waffleListUiState }
                 )
             },
             floatingActionButtonPosition = FabPosition.End,

@@ -337,12 +337,12 @@ fun WafflesBody(
             modifier = modifier,
             onWaffleClick = onWaffleClick,
             list = list,
-            canNestedScroll = canNestedScroll,
             nestedScrollConnection = nestedScrollConnection,
             getWaffleList = getWaffleList,
             onLikeBtnClicked = onLikeBtnClicked,
             onShowPopUpMenuClicked = onShowPopUpMenuClicked,
-            onProfileImageClicked = onProfileImageClicked
+            onProfileImageClicked = onProfileImageClicked,
+            canNestedScroll = canNestedScroll
         )
 
         if (canRefresh) {
