@@ -1,6 +1,7 @@
 package com.waff1e.waffle.waffle.ui.waffles
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -116,7 +118,7 @@ fun WaffleListScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-
+    val lazyListState = rememberLazyListState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     // BackHandler 관련
@@ -132,13 +134,13 @@ fun WaffleListScreen(
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 if (available.y < -1) {
-                    coroutineScope.launch {
-                        isFABScrollUp = false
-                        isFABExpandedScrollUp = false
-                    }
+                    isFABScrollUp = false
+                    isFABExpandedScrollUp = false
                 }
 
-                if (available.y > 1) isFABScrollUp = true
+                if (available.y > 1) {
+                    isFABScrollUp = true
+                }
 
                 return Offset.Zero
             }
@@ -267,7 +269,8 @@ fun WaffleListScreen(
                     },
                     canRefresh = canRefresh,
                     isRefreshing = isRefreshing,
-                    pullRefreshState = pullRefreshState
+                    pullRefreshState = pullRefreshState,
+                    lazyListState = lazyListState
                 )
             }
         }
@@ -325,7 +328,8 @@ fun WafflesBody(
     onProfileImageClicked: (String?) -> Unit,
     canRefresh: Boolean,
     isRefreshing: Boolean,
-    pullRefreshState: PullRefreshState
+    pullRefreshState: PullRefreshState,
+    lazyListState: LazyListState,
 ) {
     Box(
         modifier = Modifier
@@ -337,12 +341,13 @@ fun WafflesBody(
             modifier = modifier,
             onWaffleClick = onWaffleClick,
             list = list,
+            canNestedScroll = canNestedScroll,
             nestedScrollConnection = nestedScrollConnection,
             getWaffleList = getWaffleList,
             onLikeBtnClicked = onLikeBtnClicked,
             onShowPopUpMenuClicked = onShowPopUpMenuClicked,
             onProfileImageClicked = onProfileImageClicked,
-            canNestedScroll = canNestedScroll
+            lazyListState = lazyListState,
         )
 
         if (canRefresh) {
@@ -365,12 +370,13 @@ fun WaffleListLazyColumn(
     getWaffleList: suspend (Boolean) -> Unit,
     onLikeBtnClicked: (Long) -> Unit,
     onShowPopUpMenuClicked: (Boolean, Long) -> Unit,
-    onProfileImageClicked: (String?) -> Unit
+    onProfileImageClicked: (String?) -> Unit,
+    lazyListState: LazyListState,
 ) {
     var isInitializing by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val lazyListState = rememberLazyListState()
+
     val isEnd by remember { derivedStateOf { lazyListState.isEnd() } }
 
     if (isEnd) {

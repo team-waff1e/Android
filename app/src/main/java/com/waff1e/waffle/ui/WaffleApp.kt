@@ -139,20 +139,23 @@ fun ProfileTopAppBar(
     onAction: () -> Unit = { },
     profile: () -> ProfileUiState,
     myWaffleListUiState: () -> WaffleListUiState,
+    showTopAppbarTitle: Boolean
 ) {
     TopAppBar(
         title = {
-            Column {
-                Text(
-                    text = profile().member?.nickname ?: "",
-                    style = Typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+            if (showTopAppbarTitle) {
+                Column {
+                    Text(
+                        text = profile().member?.nickname ?: "",
+                        style = Typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                Text(
-                    text = "게시물 ${myWaffleListUiState().waffleList.size}개",
-                    style = Typography.bodyMedium
-                )
+                    Text(
+                        text = "게시물 ${myWaffleListUiState().waffleList.size}개",
+                        style = Typography.bodyMedium
+                    )
+                }
             }
         },
         modifier = modifier,
