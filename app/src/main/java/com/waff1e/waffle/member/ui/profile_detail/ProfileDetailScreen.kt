@@ -45,6 +45,7 @@ import com.waff1e.waffle.di.LoginUser
 import com.waff1e.waffle.member.ui.profile.ProfileUiState
 import com.waff1e.waffle.ui.WaffleTopAppBar
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.GlideImagePlaceholder
 import com.waff1e.waffle.utils.clickableSingle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,9 +105,6 @@ fun ProfileDetailProfileImage(
     modifier: Modifier = Modifier,
     imgURL: String,
 ) {
-    val placeholder =
-        if (isSystemInDarkTheme()) placeholder(R.drawable.person) else placeholder(R.drawable.person_white)
-
     Column(
         modifier = modifier
             .clickableSingle(
@@ -130,8 +128,8 @@ fun ProfileDetailProfileImage(
             model = imgURL,
             contentScale = ContentScale.Crop,
             transition = CrossFade,
-            loading = placeholder,
-            failure = placeholder,
+            loading = GlideImagePlaceholder(),
+            failure = GlideImagePlaceholder(),
             contentDescription = stringResource(id = R.string.profile_img),
         )
     }

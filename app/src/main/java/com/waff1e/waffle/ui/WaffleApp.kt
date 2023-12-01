@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -47,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -55,12 +57,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.bumptech.glide.integration.compose.CrossFade
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.di.LoginUserPreferenceModule
 import com.waff1e.waffle.member.ui.profile.ProfileUiState
 import com.waff1e.waffle.ui.navigation.WaffleNavHost
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.GlideImagePlaceholder
 import com.waff1e.waffle.utils.TopAppbarType
 import com.waff1e.waffle.utils.clickableSingle
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListUiState
@@ -128,7 +134,7 @@ fun WaffleTopAppBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun ProfileTopAppBar(
     modifier: Modifier = Modifier,
@@ -139,7 +145,7 @@ fun ProfileTopAppBar(
     onAction: () -> Unit = { },
     profile: () -> ProfileUiState,
     myWaffleListUiState: () -> WaffleListUiState,
-    showTopAppbarTitle: Boolean
+    showTopAppbarTitle: Boolean,
 ) {
     TopAppBar(
         title = {

@@ -1,6 +1,5 @@
 package com.waff1e.waffle.member.ui.profile
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -15,6 +14,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,9 +23,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -67,6 +69,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -74,12 +77,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bumptech.glide.integration.compose.CrossFade
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.integration.compose.placeholder
 import com.waff1e.waffle.R
 import com.waff1e.waffle.di.DOUBLE_CLICK_DELAY
 import com.waff1e.waffle.ui.ProfileTopAppBar
 import com.waff1e.waffle.ui.WaffleEditDeleteMenu
 import com.waff1e.waffle.ui.WaffleReportMenu
 import com.waff1e.waffle.ui.theme.Typography
+import com.waff1e.waffle.utils.GlideImagePlaceholder
 import com.waff1e.waffle.utils.TabItem
 import com.waff1e.waffle.utils.updateLikes
 import com.waff1e.waffle.waffle.ui.waffles.WaffleListFAB
@@ -90,7 +98,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
+    ExperimentalGlideComposeApi::class
+)
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
@@ -167,6 +177,18 @@ fun ProfileScreen(
         modifier = modifier
             .fillMaxSize()
     ) {
+        GlideImage(
+            modifier = Modifier
+                .fillMaxHeight(fraction = 0.4f)
+                .background(MaterialTheme.colorScheme.onBackground),
+            model = "https://images.dog.ceo/breeds/terrier-border/n02093754_2959.jpg",
+            contentScale = ContentScale.Crop,
+            transition = CrossFade,
+            loading = GlideImagePlaceholder(),
+            failure = GlideImagePlaceholder(),
+            contentDescription = stringResource(id = R.string.profile_img),
+        )
+
         Scaffold(
             modifier = modifier,
             topBar = {
@@ -188,10 +210,12 @@ fun ProfileScreen(
                     changeFabExpandedState = { isFABExpanded = true },
                     navigateToPostWaffle = navigateToPostWaffle
                 )
-            }
+            },
+            containerColor = Color.Transparent
         ) { innerPadding ->
             ProfileBody(
                 modifier = modifier
+                    .background(Color.Transparent)
                     .fillMaxSize()
                     .padding(innerPadding),
                 profile = { viewModel.profile },
@@ -295,13 +319,14 @@ fun ProfileBody(
 
         Column(
             modifier = modifier
-                .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
                 .fillMaxSize()
                 .nestedScroll(nestedScrollConnection)
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Column(
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(
@@ -352,7 +377,10 @@ fun ProfileBody(
             }
 
             ProfileTab(
-                modifier = Modifier.height(screenHeight),
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .height(screenHeight)
+                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
                 myWaffleListUiState = waffleListUiState,
                 getMyWaffleList = getWaffleList,
                 onWaffleClick = onWaffleClick,
